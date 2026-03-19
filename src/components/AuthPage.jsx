@@ -43,7 +43,7 @@ export default function AuthPage() {
 
             try {
                 // Determine base URL since we aren't logged in yet, we can't fully rely on the protected api wrapper
-                const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+                const baseURL = import.meta.env.VITE_API_URL || '/api';
                 const batchRes = await axios.get(`${baseURL}/batches`);
                 if (batchRes.data && Array.isArray(batchRes.data)) {
                     setBatches(batchRes.data);

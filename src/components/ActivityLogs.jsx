@@ -57,7 +57,8 @@ const ActivityLogs = () => {
     const handleUpdateLog = async (e) => {
         e.preventDefault();
         try {
-            await axios.put(`http://localhost:5001/api/audit/${editingLog.id}`, editForm, {
+            const baseURL = import.meta.env.VITE_API_URL || '/api';
+            await axios.put(`${baseURL}/audit/${editingLog.id}`, editForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Log entry updated successfully");
@@ -87,7 +88,8 @@ const ActivityLogs = () => {
         if (!window.confirm(`Are you sure you want to delete ${selectedLogs.length} selected logs?`)) return;
 
         try {
-            await axios.post('http://localhost:5001/api/audit/delete-multiple', { ids: selectedLogs }, {
+            const baseURL = import.meta.env.VITE_API_URL || '/api';
+            await axios.post(`${baseURL}/audit/delete-multiple`, { ids: selectedLogs }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             toast.success("Selected logs deleted successfully");
