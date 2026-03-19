@@ -48,54 +48,57 @@ const FacultyList = () => {
 
     return (
         <div className="w-full px-6 mx-auto space-y-8 animate-in fade-in duration-500 py-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Faculty Members</h2>
-                    <p className="text-muted-foreground mt-1">Contact our esteemed faculty members.</p>
+            {/* Sticky Search and Filter Header */}
+            <div className="sticky top-[64px] z-20 bg-background/95 backdrop-blur-sm py-4 space-y-4 border-b -mx-6 px-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-3xl font-bold tracking-tight text-foreground">Faculty Members</h2>
+                        <p className="text-muted-foreground mt-1 text-sm">Contact our esteemed faculty members.</p>
+                    </div>
+
+                    {/* Search Bar */}
+                    <div className="relative w-full md:w-72">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <input
+                            type="text"
+                            placeholder="Search faculty..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                        />
+                    </div>
                 </div>
 
-                {/* Search Bar */}
-                <div className="relative w-full md:w-72">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <input
-                        type="text"
-                        placeholder="Search faculty..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-                    />
+                {/* Filters */}
+                <div className="flex flex-wrap items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={showPermanent}
+                            onChange={(e) => setShowPermanent(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        Permanent
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={showGuest}
+                            onChange={(e) => setShowGuest(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        Guest
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={showAdjunct}
+                            onChange={(e) => setShowAdjunct(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        Adjunct
+                    </label>
                 </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={showPermanent}
-                        onChange={(e) => setShowPermanent(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    Permanent
-                </label>
-                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={showGuest}
-                        onChange={(e) => setShowGuest(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    Guest
-                </label>
-                <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={showAdjunct}
-                        onChange={(e) => setShowAdjunct(e.target.checked)}
-                        className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                    />
-                    Adjunct
-                </label>
             </div>
 
             {loading ? (

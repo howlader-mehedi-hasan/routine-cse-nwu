@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
-import { Check, X, Shield, Clock, Plus, Edit, Key, Eye, EyeOff, Trash2, Users } from 'lucide-react';
+import { Check, X, Shield, Clock, Plus, Edit, Key, Eye, EyeOff, Trash2, Users, Search } from 'lucide-react';
 
 export default function UserManagement() {
     const { api, user: currentUser } = useAuth();
@@ -13,6 +13,10 @@ export default function UserManagement() {
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [selectedUserIds, setSelectedUserIds] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('All');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const [formData, setFormData] = useState({
         username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: ''
@@ -171,18 +175,37 @@ export default function UserManagement() {
         setIsPasswordModalOpen(true);
     };
 
+    const approvedUsers = users.filter(u => {
+        const matchesStatus = u.status !== 'pending';
+        const matchesRole = roleFilter === 'All' || u.role === roleFilter;
+        const matchesSearch = (
+            u.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.fullName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        return matchesStatus && matchesRole && matchesSearch;
+    });
+
+    // Pagination logic
+    const totalPages = Math.ceil(approvedUsers.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedUsers = approvedUsers.slice(startIndex, startIndex + itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, roleFilter, itemsPerPage]);
+
     if (loading) return <div>Loading users...</div>;
 
     const pendingUsers = users.filter(u => u.status === 'pending');
-    const approvedUsers = users.filter(u => u.status !== 'pending');
     const pendingNameChanges = users.filter(u => u.pendingFullName);
 
     return (
         <div className="space-y-8 p-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
-                        <Shield className="text-indigo-600 h-8 w-8" /> User Management
+                    <h2 className="text-3xl font-bold mb-2 flex items-center gap-2 text-indigo-600">
+                        <Shield className="h-8 w-8" /> User Approvals
                     </h2>
                     <p className="text-muted-foreground">Manage registration requests, users, and permissions.</p>
                 </div>
@@ -306,28 +329,64 @@ export default function UserManagement() {
             )}
 
             {/* Active Users */}
-            <div className="bg-card rounded-lg border shadow-sm p-4 mt-8">
-                <div className="flex justify-between items-center mb-4 border-b pb-2">
-                    <h3 className="text-xl font-semibold">All Active Users</h3>
-                    {selectedUserIds.length > 0 && (
-                        <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-200">
-                            <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md border shadow-sm">
-                                {selectedUserIds.length} users selected
-                            </span>
-                            <button
-                                onClick={handleBulkDelete}
-                                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-all shadow-sm hover:scale-105"
-                            >
-                                <Trash2 className="w-4 h-4" /> Delete Selected
-                            </button>
+            {/* Active Users Table Section */}
+            <div className="bg-card rounded-lg border shadow-sm mt-8 overflow-hidden">
+                <div className="sticky top-[57px] md:top-[64px] z-30 bg-background/95 backdrop-blur-md px-4 py-3 border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm md:h-20">
+                    <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                        <h3 className="text-xl font-semibold whitespace-nowrap text-foreground">Active Users</h3>
+                        
+                        {/* Search Input */}
+                        <div className="relative flex-grow md:flex-grow-0 md:w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="Search users/email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-muted-foreground"
+                            />
                         </div>
-                    )}
+
+                        {/* Role Filter */}
+                        <div className="relative flex-grow md:flex-grow-0 md:w-48">
+                            <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer font-medium"
+                            >
+                                <option value="All">All Roles</option>
+                                {allRoles.map(role => (
+                                    <option key={role} value={role}>{role}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                        {selectedUserIds.length > 0 && (
+                            <div className="flex items-center gap-3 animate-in fade-in zoom-in duration-200">
+                                <span className="text-sm font-semibold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-900/50">
+                                    {selectedUserIds.length} Selected
+                                </span>
+                                <button
+                                    onClick={handleBulkDelete}
+                                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-all shadow-md hover:scale-105 active:scale-95"
+                                >
+                                    <Trash2 className="w-4 h-4" /> Delete
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-muted text-muted-foreground uppercase">
-                            <tr>
-                                <th className="px-4 py-3 border-b w-10">
+                        <thead className="bg-muted text-muted-foreground text-[11px] uppercase tracking-wider font-bold">
+                            <tr className="h-12">
+                                <th className="px-4 py-2 border-b w-10 sticky top-0 z-10 bg-muted">
                                     <input 
                                         type="checkbox" 
                                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 h-4 w-4 transition-all"
@@ -335,18 +394,18 @@ export default function UserManagement() {
                                         onChange={() => toggleSelectAll(approvedUsers.filter(u => u.role !== 'Super Admin'))}
                                     />
                                 </th>
-                                <th className="px-4 py-3 border-b">Username / Name</th>
-                                <th className="px-4 py-3 border-b">Contact</th>
-                                <th className="px-4 py-3 border-b">Status</th>
-                                <th className="px-4 py-3 border-b">Role</th>
+                                <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted whitespace-nowrap">Username / Name</th>
+                                <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted whitespace-nowrap">Contact</th>
+                                <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted whitespace-nowrap">Status</th>
+                                <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted whitespace-nowrap">Role</th>
                                 {currentUser?.role === 'Super Admin' && (
-                                    <th className="px-4 py-3 border-b">Password</th>
+                                    <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted whitespace-nowrap">Password</th>
                                 )}
-                                <th className="px-4 py-3 border-b text-right">Actions</th>
+                                <th className="px-4 py-2 border-b sticky top-0 z-10 bg-muted text-right whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {approvedUsers.map(user => (
+                            {paginatedUsers.map(user => (
                                 <tr key={user.id} className={`hover:bg-muted/30 transition-colors ${selectedUserIds.includes(user.id) ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
                                     <td className="px-4 py-3">
                                         {user.role !== 'Super Admin' && (
@@ -417,6 +476,76 @@ export default function UserManagement() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Summary & Pagination footer */}
+                <div className="px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between bg-muted/20 gap-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                        <div className="text-sm text-muted-foreground whitespace-nowrap">
+                            Showing <span className="font-medium text-foreground">{approvedUsers.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, approvedUsers.length)}</span> of <span className="font-medium text-foreground">{approvedUsers.length}</span> users
+                        </div>
+                        
+                        <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 shadow-sm">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">Per page:</span>
+                            <select 
+                                className="bg-transparent text-sm focus:outline-none cursor-pointer font-medium"
+                                value={itemsPerPage}
+                                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                            >
+                                {[10, 20, 50, 100].map(num => (
+                                    <option key={num} value={num}>{num}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto justify-center">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap shadow-sm"
+                            >
+                                Previous
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                                    if (
+                                        pageNum === 1 ||
+                                        pageNum === totalPages ||
+                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                    ) {
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-indigo-500 ${
+                                                    currentPage === pageNum 
+                                                        ? 'bg-indigo-600 text-white font-bold shadow-sm' 
+                                                        : 'hover:bg-accent border border-transparent border-border/50'
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    } else if (
+                                        pageNum === currentPage - 2 ||
+                                        pageNum === currentPage + 2
+                                    ) {
+                                        return <span key={pageNum} className="px-1 text-muted-foreground">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap shadow-sm"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -460,126 +460,133 @@ const AdminPanel = () => {
 
                     {/* Data List */}
                     <div className="space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-lg font-semibold text-foreground">
-                                Existing Records ({filteredData.length})
-                            </h3>
+                        {/* Sticky Search and Filters Row */}
+                        <div className="sticky top-[64px] z-20 bg-background/95 backdrop-blur-sm py-4 border-b -mx-6 px-6 mb-6">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                                <div className="flex items-center justify-between flex-1 gap-4">
+                                    <h3 className="text-lg font-semibold text-foreground whitespace-nowrap">
+                                        Existing Records ({filteredData.length})
+                                    </h3>
 
-                            {/* Search Input */}
-                            <div className="relative w-full sm:w-64">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <input
-                                    type="text"
-                                    placeholder={`Search ${activeTab}...`}
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-                                />
+                                    {/* Search Input */}
+                                    <div className="relative w-full max-w-sm">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            placeholder={`Search ${activeTab}...`}
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Filters */}
+                                <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0">
+                                    {activeTab === 'faculty' && (
+                                        <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border min-w-max">
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showPermanent}
+                                                    onChange={(e) => setShowPermanent(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                                    Permanent
+                                                </span>
+                                            </label>
+                                            <div className="h-4 w-px bg-border"></div>
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showGuest}
+                                                    onChange={(e) => setShowGuest(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                                                    Guest
+                                                </span>
+                                            </label>
+                                            <div className="h-4 w-px bg-border"></div>
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showAdjunct}
+                                                    onChange={(e) => setShowAdjunct(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-purple-500 focus:ring-purple-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                                                    Adjunct
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'rooms' && (
+                                        <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border min-w-max">
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showClassrooms}
+                                                    onChange={(e) => setShowClassrooms(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                                    Classrooms
+                                                </span>
+                                            </label>
+                                            <div className="h-4 w-px bg-border"></div>
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showLabs}
+                                                    onChange={(e) => setShowLabs(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                                    Laboratories
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+
+                                    {activeTab === 'courses' && (
+                                        <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border min-w-max">
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showTheory}
+                                                    onChange={(e) => setShowTheory(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                                    Theory
+                                                </span>
+                                            </label>
+                                            <div className="h-4 w-px bg-border"></div>
+                                            <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={showLabCourses}
+                                                    onChange={(e) => setShowLabCourses(e.target.checked)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                                />
+                                                <span className="flex items-center gap-1.5 text-xs">
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                                    Lab
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-
-                            {/* Filters */}
-                            {activeTab === 'faculty' && (
-                                <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border overflow-x-auto">
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
-                                        <input
-                                            type="checkbox"
-                                            checked={showPermanent}
-                                            onChange={(e) => setShowPermanent(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                            Permanent
-                                        </span>
-                                    </label>
-                                    <div className="h-4 w-px bg-border"></div>
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
-                                        <input
-                                            type="checkbox"
-                                            checked={showGuest}
-                                            onChange={(e) => setShowGuest(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-amber-500 focus:ring-amber-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                                            Guest
-                                        </span>
-                                    </label>
-                                    <div className="h-4 w-px bg-border"></div>
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none whitespace-nowrap">
-                                        <input
-                                            type="checkbox"
-                                            checked={showAdjunct}
-                                            onChange={(e) => setShowAdjunct(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-purple-500 focus:ring-purple-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                                            Adjunct
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
-
-                            {activeTab === 'rooms' && (
-                                <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border">
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={showClassrooms}
-                                            onChange={(e) => setShowClassrooms(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                            Classrooms
-                                        </span>
-                                    </label>
-                                    <div className="h-4 w-px bg-border"></div>
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={showLabs}
-                                            onChange={(e) => setShowLabs(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                            Laboratories
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
-
-                            {activeTab === 'courses' && (
-                                <div className="flex items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border">
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={showTheory}
-                                            onChange={(e) => setShowTheory(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                            Theory
-                                        </span>
-                                    </label>
-                                    <div className="h-4 w-px bg-border"></div>
-                                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none">
-                                        <input
-                                            type="checkbox"
-                                            checked={showLabCourses}
-                                            onChange={(e) => setShowLabCourses(e.target.checked)}
-                                            className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                                        />
-                                        <span className="flex items-center gap-1.5">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                            Lab
-                                        </span>
-                                    </label>
-                                </div>
-                            )}
                         </div>
 
                         {isLoading ? (
