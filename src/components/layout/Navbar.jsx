@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, Database, Settings, GraduationCap, Moon, Sun, Users, Menu, X, LogOut, Shield } from 'lucide-react';
+import { Calendar, Database, Settings, GraduationCap, Moon, Sun, Users, Menu, X, LogOut, Shield, CalendarClock, BoxIcon, RouteIcon, RouterIcon, BotIcon, Icon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useTheme } from "../ui/ThemeProvider";
 import { Button } from "../ui/Button";
 import { useAuth } from '../../contexts/AuthContext';
+import { useWindowSize } from '../../hooks/useWindowSize';
 
 const Navbar = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const { user, logout, hasPermission, hasAnyPermission } = useAuth();
+    const { width } = useWindowSize();
 
     const handleLogout = () => {
         logout();
@@ -19,8 +21,8 @@ const Navbar = () => {
 
     // Base items for everyone
     let menuItems = [
-        { path: '/', label: 'Routine View', icon: <Calendar size={18} /> },
-        { path: '/week-routine', label: 'Week View', icon: <Calendar size={18} /> },
+        { path: '/', label: 'Routine View', icon: <BoxIcon size={18} /> },
+        { path: '/week-routine', label: 'Week View', icon: <CalendarClock size={18} /> },
         { path: '/faculty', label: 'Faculty', icon: <Users size={18} /> },
     ];
 
@@ -58,8 +60,11 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    {/* Navigation Links - Desktop */}
-                    <div className="hidden md:flex items-center space-x-1">
+                    {/* Navigation Links - Desktop & Wide Mobile */}
+                    <div className={cn(
+                        "items-center space-x-1",
+                        width >= 350 ? "flex" : "hidden"
+                    )}>
                         {menuItems.map((item) => {
                             const isActive = location.pathname === item.path;
                             return (
@@ -74,7 +79,7 @@ const Navbar = () => {
                                     )}
                                 >
                                     {item.icon}
-                                    <span>{item.label}</span>
+                                    {width >= 600 && <span>{item.label}</span>}
                                 </Link>
                             );
                         })}
@@ -87,10 +92,10 @@ const Navbar = () => {
                                 <span className="font-bold text-indigo-500">{user.fullName || user.username}</span>
                             </div>
                         )}
-                        <div className="h-6 w-px bg-border mx-2 hidden md:block"></div>
+                        {width >= 350 && <div className="h-6 w-px bg-border mx-2"></div>}
 
                         {settingItems.length > 0 && (
-                            <Link to="/settings" className="hidden md:block">
+                            <Link to="/settings" className={width >= 350 ? "block" : "hidden"}>
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -112,7 +117,10 @@ const Navbar = () => {
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleLogout}
-                                className="hidden md:flex items-center gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                className={cn(
+                                    "items-center gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30",
+                                    width >= 350 ? "flex" : "hidden"
+                                )}
                             >
                                 <LogOut size={16} /> Logout
                             </Button>
@@ -121,14 +129,17 @@ const Navbar = () => {
                                 asChild
                                 variant="default"
                                 size="sm"
-                                className="hidden md:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+                                className={cn(
+                                    "items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white",
+                                    width >= 350 ? "flex" : "hidden"
+                                )}
                             >
                                 <Link to="/auth">Sign In</Link>
                             </Button>
                         )}
 
-                        {/* Mobile Menu Button */}
-                        <div className="md:hidden ml-2">
+                        {/* Mobile Menu Button - Tiny Mobile Only */}
+                        <div className={width < 350 ? "block" : "hidden"}>
                             <Button
                                 variant="ghost"
                                 size="icon"
