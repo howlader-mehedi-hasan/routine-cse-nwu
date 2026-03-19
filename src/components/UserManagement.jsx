@@ -147,9 +147,9 @@ export default function UserManagement() {
     };
 
     const toggleUserSelection = (userId) => {
-        setSelectedUserIds(prev => 
-            prev.includes(userId) 
-                ? prev.filter(id => id !== userId) 
+        setSelectedUserIds(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
                 : [...prev, userId]
         );
     };
@@ -331,10 +331,10 @@ export default function UserManagement() {
             {/* Active Users */}
             {/* Active Users Table Section */}
             <div className="bg-card rounded-lg border shadow-sm mt-8 overflow-hidden">
-                <div className="sticky top-[57px] md:top-[64px] z-30 bg-background/95 backdrop-blur-md px-4 py-3 border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm md:h-20">
+                <div className="sticky top-[0px] md:top-[0px] z-30 bg-background/95 backdrop-blur-md px-4 py-3 border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm md:h-20">
                     <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
                         <h3 className="text-xl font-semibold whitespace-nowrap text-foreground">Active Users</h3>
-                        
+
                         {/* Search Input */}
                         <div className="relative flex-grow md:flex-grow-0 md:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -382,13 +382,83 @@ export default function UserManagement() {
                         )}
                     </div>
                 </div>
+
+                {/* Summary & Pagination footer */}
+                <div className="px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between bg-muted/20 gap-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                        <div className="text-sm text-muted-foreground whitespace-nowrap">
+                            Showing <span className="font-medium text-foreground">{approvedUsers.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, approvedUsers.length)}</span> of <span className="font-medium text-foreground">{approvedUsers.length}</span> users
+                        </div>
+
+                        <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 shadow-sm">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">Per page:</span>
+                            <select
+                                className="bg-transparent text-sm focus:outline-none cursor-pointer font-medium"
+                                value={itemsPerPage}
+                                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                            >
+                                {[10, 20, 50, 100].map(num => (
+                                    <option key={num} value={num}>{num}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    {totalPages > 1 && (
+                        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto justify-center">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap shadow-sm"
+                            >
+                                Previous
+                            </button>
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                                    if (
+                                        pageNum === 1 ||
+                                        pageNum === totalPages ||
+                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                    ) {
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-indigo-500 ${currentPage === pageNum
+                                                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                                                    : 'hover:bg-accent border border-transparent border-border/50'
+                                                    }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    } else if (
+                                        pageNum === currentPage - 2 ||
+                                        pageNum === currentPage + 2
+                                    ) {
+                                        return <span key={pageNum} className="px-1 text-muted-foreground">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap shadow-sm"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+                </div>
+
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-muted text-muted-foreground text-[11px] uppercase tracking-wider font-bold">
                             <tr className="h-12">
                                 <th className="px-4 py-2 border-b w-10 sticky top-0 z-10 bg-muted">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 h-4 w-4 transition-all"
                                         checked={approvedUsers.length > 0 && selectedUserIds.length === approvedUsers.filter(u => u.role !== 'Super Admin').length}
                                         onChange={() => toggleSelectAll(approvedUsers.filter(u => u.role !== 'Super Admin'))}
@@ -409,8 +479,8 @@ export default function UserManagement() {
                                 <tr key={user.id} className={`hover:bg-muted/30 transition-colors ${selectedUserIds.includes(user.id) ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}>
                                     <td className="px-4 py-3">
                                         {user.role !== 'Super Admin' && (
-                                            <input 
-                                                type="checkbox" 
+                                            <input
+                                                type="checkbox"
                                                 className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 h-4 w-4 transition-all"
                                                 checked={selectedUserIds.includes(user.id)}
                                                 onChange={() => toggleUserSelection(user.id)}
@@ -484,10 +554,10 @@ export default function UserManagement() {
                         <div className="text-sm text-muted-foreground whitespace-nowrap">
                             Showing <span className="font-medium text-foreground">{approvedUsers.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, approvedUsers.length)}</span> of <span className="font-medium text-foreground">{approvedUsers.length}</span> users
                         </div>
-                        
+
                         <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 shadow-sm">
                             <span className="text-xs text-muted-foreground whitespace-nowrap">Per page:</span>
-                            <select 
+                            <select
                                 className="bg-transparent text-sm focus:outline-none cursor-pointer font-medium"
                                 value={itemsPerPage}
                                 onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -519,11 +589,10 @@ export default function UserManagement() {
                                             <button
                                                 key={pageNum}
                                                 onClick={() => setCurrentPage(pageNum)}
-                                                className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-indigo-500 ${
-                                                    currentPage === pageNum 
-                                                        ? 'bg-indigo-600 text-white font-bold shadow-sm' 
-                                                        : 'hover:bg-accent border border-transparent border-border/50'
-                                                }`}
+                                                className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-indigo-500 ${currentPage === pageNum
+                                                    ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                                                    : 'hover:bg-accent border border-transparent border-border/50'
+                                                    }`}
                                             >
                                                 {pageNum}
                                             </button>
@@ -567,7 +636,7 @@ export default function UserManagement() {
                                     required
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.username}
-                                    onChange={e => setFormData({...formData, username: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -576,7 +645,7 @@ export default function UserManagement() {
                                     type="email"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.email}
-                                    onChange={e => setFormData({...formData, email: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -585,7 +654,7 @@ export default function UserManagement() {
                                     type="text"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.fullName}
-                                    onChange={e => setFormData({...formData, fullName: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -594,7 +663,7 @@ export default function UserManagement() {
                                     type="tel"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.mobileNumber}
-                                    onChange={e => setFormData({...formData, mobileNumber: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -605,7 +674,7 @@ export default function UserManagement() {
                                     minLength={6}
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.password}
-                                    onChange={e => setFormData({...formData, password: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -613,7 +682,7 @@ export default function UserManagement() {
                                 <select
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.role}
-                                    onChange={e => setFormData({...formData, role: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
                                 >
                                     {roles.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
@@ -624,7 +693,7 @@ export default function UserManagement() {
                                     <select
                                         className="w-full px-3 py-2 border rounded-lg bg-background"
                                         value={formData.section}
-                                        onChange={e => setFormData({...formData, section: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, section: e.target.value })}
                                         required
                                     >
                                         {batches.length === 0 && <option value="" disabled>No sections available</option>}
@@ -659,7 +728,7 @@ export default function UserManagement() {
                                     required
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.username}
-                                    onChange={e => setFormData({...formData, username: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -668,7 +737,7 @@ export default function UserManagement() {
                                     type="email"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.email}
-                                    onChange={e => setFormData({...formData, email: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -677,7 +746,7 @@ export default function UserManagement() {
                                     type="text"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.fullName}
-                                    onChange={e => setFormData({...formData, fullName: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -686,7 +755,7 @@ export default function UserManagement() {
                                     type="tel"
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.mobileNumber}
-                                    onChange={e => setFormData({...formData, mobileNumber: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -694,7 +763,7 @@ export default function UserManagement() {
                                 <select
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.status}
-                                    onChange={e => setFormData({...formData, status: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
                                 >
                                     <option value="approved">Approved</option>
                                     <option value="pending">Pending</option>
@@ -706,7 +775,7 @@ export default function UserManagement() {
                                 <select
                                     className="w-full px-3 py-2 border rounded-lg bg-background"
                                     value={formData.role}
-                                    onChange={e => setFormData({...formData, role: e.target.value})}
+                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
                                     disabled={selectedUser?.role === 'Super Admin'}
                                 >
                                     {roles.map(r => <option key={r} value={r}>{r}</option>)}
@@ -715,14 +784,14 @@ export default function UserManagement() {
                                     <p className="text-xs text-amber-500 mt-1">Super Admin role cannot be changed directly here.</p>
                                 )}
                             </div>
-                            
+
                             {['Student', 'CR/ACR'].includes(formData.role) && (
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Section / Batch</label>
                                     <select
                                         className="w-full px-3 py-2 border rounded-lg bg-background"
                                         value={formData.section}
-                                        onChange={e => setFormData({...formData, section: e.target.value})}
+                                        onChange={e => setFormData({ ...formData, section: e.target.value })}
                                         required
                                     >
                                         {batches.length === 0 && <option value="" disabled>No sections available</option>}
@@ -730,42 +799,42 @@ export default function UserManagement() {
                                     </select>
                                 </div>
                             )}
-                            
+
                             {/* Permissions Section */}
                             {selectedUser?.role !== 'Super Admin' && selectedUser?.role !== 'Admin' && (
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Permissions</label>
-                                <div className="space-y-2 mt-2 bg-muted/30 p-3 rounded-lg border">
-                                    {[
-                                        { id: 'edit_routine', label: 'Edit Routine (Day)', desc: '(Can manage classes in day view)' },
-                                        { id: 'edit_week_routine', label: 'Edit Routine (Week)', desc: '(Can manage classes & backups in week view)' },
-                                        { id: 'manage_faculty', label: 'Manage Faculty', desc: '(Can add, edit, or delete faculty)' },
-                                        { id: 'manage_courses', label: 'Manage Courses', desc: '(Can add, edit, or delete courses)' },
-                                        { id: 'manage_rooms', label: 'Manage Rooms', desc: '(Can add, edit, or delete rooms)' },
-                                        { id: 'manage_batches', label: 'Manage Batches', desc: '(Can add, edit, or delete batches)' },
-                                        { id: 'assign_permissions', label: 'Assign Permissions', desc: '(Can manage user roles and permissions)' },
-                                        { id: 'view_activity_logs', label: 'View Activity Logs', desc: '(Can view the system activity log)' },
-                                    ].map(perm => (
-                                        <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                checked={formData.permissions.includes(perm.id)}
-                                                onChange={(e) => {
-                                                    const checked = e.target.checked;
-                                                    setFormData(prev => ({
-                                                        ...prev,
-                                                        permissions: checked 
-                                                            ? [...prev.permissions, perm.id]
-                                                            : prev.permissions.filter(p => p !== perm.id)
-                                                    }));
-                                                }}
-                                            />
-                                            <span className="text-sm select-none">{perm.label} <span className="text-xs text-muted-foreground ml-1">{perm.desc}</span></span>
-                                        </label>
-                                    ))}
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Permissions</label>
+                                    <div className="space-y-2 mt-2 bg-muted/30 p-3 rounded-lg border">
+                                        {[
+                                            { id: 'edit_routine', label: 'Edit Routine (Day)', desc: '(Can manage classes in day view)' },
+                                            { id: 'edit_week_routine', label: 'Edit Routine (Week)', desc: '(Can manage classes & backups in week view)' },
+                                            { id: 'manage_faculty', label: 'Manage Faculty', desc: '(Can add, edit, or delete faculty)' },
+                                            { id: 'manage_courses', label: 'Manage Courses', desc: '(Can add, edit, or delete courses)' },
+                                            { id: 'manage_rooms', label: 'Manage Rooms', desc: '(Can add, edit, or delete rooms)' },
+                                            { id: 'manage_batches', label: 'Manage Batches', desc: '(Can add, edit, or delete batches)' },
+                                            { id: 'assign_permissions', label: 'Assign Permissions', desc: '(Can manage user roles and permissions)' },
+                                            { id: 'view_activity_logs', label: 'View Activity Logs', desc: '(Can view the system activity log)' },
+                                        ].map(perm => (
+                                            <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                                                    checked={formData.permissions.includes(perm.id)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            permissions: checked
+                                                                ? [...prev.permissions, perm.id]
+                                                                : prev.permissions.filter(p => p !== perm.id)
+                                                        }));
+                                                    }}
+                                                />
+                                                <span className="text-sm select-none">{perm.label} <span className="text-xs text-muted-foreground ml-1">{perm.desc}</span></span>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
                             )}
 
                             <div className="pt-4 flex justify-end gap-3">

@@ -1,6 +1,33 @@
+# Dependencies
+node_modules/
+.npm
+.eslintcache
+
+# Build
+dist/
+dist-ssr/
+
+# Environment
 .env
-.venv
-node_modules
+.env.local
+.env.*.local
+.venv/
 
+# OS/System
+.DS_Store
+.DS_Store?
+._*
 
+# IDE/Editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.iml
 
+# Project specific
+Backups/
+*.pdf
+*.log

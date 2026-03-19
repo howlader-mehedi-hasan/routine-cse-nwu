@@ -189,10 +189,10 @@ const ActivityLogs = () => {
                     <div className="text-sm text-muted-foreground whitespace-nowrap">
                         Showing <span className="font-medium text-foreground">{filteredLogs.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="font-medium text-foreground">{filteredLogs.length}</span> results
                     </div>
-                    
+
                     <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 shadow-sm">
                         <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">Per page:</span>
-                        <select 
+                        <select
                             className="bg-transparent text-sm focus:outline-none cursor-pointer font-semibold text-primary"
                             value={itemsPerPage}
                             onChange={(e) => setItemsPerPage(Number(e.target.value))}
@@ -355,55 +355,73 @@ const ActivityLogs = () => {
                     </table>
                 </div>
                 {/* Pagination Controls */}
-                {totalPages > 1 && (
+                {(totalPages > 1 || filteredLogs.length > 0) && (
                     <div className="px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between bg-muted/20 gap-4">
-                        <div className="text-sm text-muted-foreground whitespace-nowrap">
-                            Showing <span className="font-medium text-foreground">{startIndex + 1}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="font-medium text-foreground">{filteredLogs.length}</span> results
-                        </div>
-                        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto justify-center">
-                            <button
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                disabled={currentPage === 1}
-                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap"
-                            >
-                                Previous
-                            </button>
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                                    if (
-                                        pageNum === 1 ||
-                                        pageNum === totalPages ||
-                                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                                    ) {
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => setCurrentPage(pageNum)}
-                                                className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-primary/20 ${currentPage === pageNum
-                                                    ? 'bg-primary text-primary-foreground font-bold shadow-sm'
-                                                    : 'hover:bg-accent border border-transparent border-border/50'
-                                                    }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    } else if (
-                                        pageNum === currentPage - 2 ||
-                                        pageNum === currentPage + 2
-                                    ) {
-                                        return <span key={pageNum} className="text-muted-foreground">...</span>;
-                                    }
-                                    return null;
-                                })}
+                        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                            <div className="text-sm text-muted-foreground whitespace-nowrap">
+                                Showing <span className="font-medium text-foreground">{filteredLogs.length > 0 ? startIndex + 1 : 0}</span> to <span className="font-medium text-foreground">{Math.min(startIndex + itemsPerPage, filteredLogs.length)}</span> of <span className="font-medium text-foreground">{filteredLogs.length}</span> results
                             </div>
-                            <button
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                disabled={currentPage === totalPages}
-                                className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap"
-                            >
-                                Next
-                            </button>
+
+                            <div className="flex items-center gap-2 bg-background border border-border rounded-lg px-3 py-1.5 shadow-sm">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap font-medium">Per page:</span>
+                                <select
+                                    className="bg-transparent text-sm focus:outline-none cursor-pointer font-semibold text-primary"
+                                    value={itemsPerPage}
+                                    onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                                >
+                                    {[10, 20, 50, 100].map(num => (
+                                        <option key={num} value={num}>{num}</option>
+                                    ))}
+                                </select>
+                            </div>
                         </div>
+
+                        {totalPages > 1 && (
+                            <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto justify-center">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap"
+                                >
+                                    Previous
+                                </button>
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                                        if (
+                                            pageNum === 1 ||
+                                            pageNum === totalPages ||
+                                            (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={`w-8 h-8 rounded-md text-sm transition-all focus:ring-2 focus:ring-primary/20 ${currentPage === pageNum
+                                                        ? 'bg-primary text-primary-foreground font-bold shadow-sm'
+                                                        : 'hover:bg-accent border border-transparent border-border/50'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        } else if (
+                                            pageNum === currentPage - 2 ||
+                                            pageNum === currentPage + 2
+                                        ) {
+                                            return <span key={pageNum} className="text-muted-foreground">...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1.5 rounded-md border border-border hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed text-sm transition-colors whitespace-nowrap"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
