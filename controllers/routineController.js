@@ -6,15 +6,10 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000/opti
 
 // Helper to get human-readable names for IDs
 const getEntryDetails = async (entry) => {
-    const courses = await dbRepository.getAll('courses');
-    const batches = await dbRepository.getAll('batches');
-    const faculties = await dbRepository.getAll('faculty');
-    const rooms = await dbRepository.getAll('rooms');
-
-    const course = courses.find(c => c.id == entry.course_id);
-    const batch = batches.find(b => b.id == entry.batch_id);
-    const faculty = faculties.find(f => f.id == entry.faculty_id);
-    const room = entry.room_id ? rooms.find(r => r.id == entry.room_id) : null;
+    const course = await dbRepository.findOne('courses', 'id', entry.course_id);
+    const batch = await dbRepository.findOne('batches', 'id', entry.batch_id);
+    const faculty = await dbRepository.findOne('faculty', 'id', entry.faculty_id);
+    const room = entry.room_id ? await dbRepository.findOne('rooms', 'id', entry.room_id) : null;
 
     return {
         course: course ? `${course.name} (${course.code})` : 'Unknown Course',

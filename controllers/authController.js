@@ -53,9 +53,10 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: 'All fields (Username, Email, Password, Full Name, Mobile Number) are required for registration' });
         }
 
-        const users = await dbRepository.getAll('users');
+        const existingUser = await dbRepository.findOne('users', 'username', username);
+        const existingEmail = email ? await dbRepository.findOne('users', 'email', email) : null;
 
-        if (users.find(u => u.username === username || (u.email && u.email === email))) {
+        if (existingUser || existingEmail) {
             return res.status(400).json({ message: 'Username or Email already exists' });
         }
 
@@ -109,9 +110,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const users = await dbRepository.getAll('users');
-
-        const user = users.find(u => u.username === username);
+        const user = await dbRepository.findOne('users', 'username', username);
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -206,8 +205,10 @@ export const createUser = async (req, res) => {
             return res.status(400).json({ message: 'Username and password are required' });
         }
 
-        const users = await dbRepository.getAll('users');
-        if (users.find(u => u.username === username || (email && u.email === email))) {
+        const existingUser = await dbRepository.findOne('users', 'username', username);
+        const existingEmail = email ? await dbRepository.findOne('users', 'email', email) : null;
+
+        if (existingUser || existingEmail) {
             return res.status(400).json({ message: 'Username or Email already exists' });
         }
 
@@ -278,15 +279,13 @@ export const updateUser = async (req, res) => {
 
         // Check conflicts
         if (data.username || data.email) {
-            const users = await dbRepository.getAll('users');
-            const conflict = users.find(u => 
-                u.id !== id && (
-                    (data.username && u.username === data.username) || 
-                    (data.email && u.email && u.email === data.email)
-                )
-            );
-            if (conflict) {
-                return res.status(400).json({ message: 'Username or Email already in use by another account' });
+            if (data.username) {
+                const existing = await dbRepository.findOne('users', 'username', data.username);
+                if (existing && existing.id !== id) return res.status(400).json({ message: 'Username already in use' });
+            }
+            if (data.email) {
+                const existing = await dbRepository.findOne('users', 'email', data.email);
+                if (existing && existing.id !== id) return res.status(400).json({ message: 'Email already in use' });
             }
         }
 

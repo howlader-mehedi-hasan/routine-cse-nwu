@@ -22,8 +22,51 @@ class DBRepository {
             .select('*');
         
         if (error) {
-            console.error(`Error fetching all from ${collectionName}:`, error);
+            console.error(`Error fetching all from ${collectionName}:`, {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
             return [];
+        }
+        return data;
+    }
+
+    // Generic Get By Field (Targeted query)
+    async getByField(collectionName, field, value) {
+        const { data, error } = await this.supabase
+            .from(collectionName)
+            .select('*')
+            .eq(field, value);
+        
+        if (error) {
+            console.error(`Error fetching from ${collectionName} where ${field} = ${value}:`, {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            return [];
+        }
+        return data;
+    }
+
+    async findOne(collectionName, field, value) {
+        const { data, error } = await this.supabase
+            .from(collectionName)
+            .select('*')
+            .eq(field, value)
+            .maybeSingle();
+        
+        if (error) {
+            console.error(`Error finding one from ${collectionName} where ${field} = ${value}:`, {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            return null;
         }
         return data;
     }
