@@ -156,4 +156,46 @@
         @apply bg-background text-foreground;
         font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     }
+
+    /* Custom Table Scrollbar */
+    .table-container-wrapper ::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+        transition: all 0.3s ease;
+    }
+
+    .table-container-wrapper ::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 5px;
+    }
+
+    .table-container-wrapper ::-webkit-scrollbar-thumb {
+        background: transparent;
+        border-radius: 5px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    .table-container-wrapper:hover ::-webkit-scrollbar-track {
+        background: hsl(var(--muted)/0.5);
+    }
+
+    .table-container-wrapper:hover ::-webkit-scrollbar-thumb {
+        background: hsl(var(--primary)/0.5);
+    }
+
+    .table-container-wrapper ::-webkit-scrollbar-thumb:hover {
+        background: hsl(var(--primary));
+    }
+
+    /* Firefox */
+    .table-scroll-area {
+        scrollbar-width: auto;
+        scrollbar-color: transparent transparent;
+        transition: scrollbar-color 0.3s ease;
+    }
+
+    .table-container-wrapper:hover .table-scroll-area {
+        scrollbar-color: hsl(var(--primary)/0.5) hsl(var(--muted)/0.5);
+    }
 }

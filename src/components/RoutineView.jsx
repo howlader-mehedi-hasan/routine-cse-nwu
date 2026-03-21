@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getRoutine, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, getSettings } from '../services/api';
 import { generateRoutineViewPDF } from '../utils/pdfGenerator';
 import autoTable from 'jspdf-autotable';
@@ -19,6 +19,14 @@ const operatingDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "
 const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const { user, hasPermission } = useAuth();
     const canEdit = hasPermission('edit_routine');
+
+    // Scroll Sync Refs & State
+    const tableContainerRef = useRef(null);
+    const topScrollContainerRef = useRef(null);
+    const duplicateHeaderRef = useRef(null);
+    const [tableWidth, setTableWidth] = React.useState(0);
+    const [showStickyHeader, setShowStickyHeader] = React.useState(false);
+    const [headerLayout, setHeaderLayout] = React.useState({ left: 0, width: 0 });
 
     const getDefaultDay = () => {
         const now = new Date();
@@ -125,6 +133,106 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         toast.success("PDF settings saved!");
     };
 
+    // Sync scroll position
+    useEffect(() => {
+        const table = tableContainerRef.current;
+        const top = topScrollContainerRef.current;
+
+        if (!table || !top) return;
+
+        const handleTableScroll = () => {
+            if (topScrollContainerRef.current && tableContainerRef.current) {
+                const scrollLeft = tableContainerRef.current.scrollLeft;
+                if (Math.abs(topScrollContainerRef.current.scrollLeft - scrollLeft) > 1) {
+                    topScrollContainerRef.current.scrollLeft = scrollLeft;
+                }
+                if (duplicateHeaderRef.current && Math.abs(duplicateHeaderRef.current.scrollLeft - scrollLeft) > 1) {
+                    duplicateHeaderRef.current.scrollLeft = scrollLeft;
+                }
+            }
+        };
+
+        const handleTopScroll = () => {
+            if (tableContainerRef.current && topScrollContainerRef.current) {
+                const scrollLeft = topScrollContainerRef.current.scrollLeft;
+                if (Math.abs(tableContainerRef.current.scrollLeft - scrollLeft) > 1) {
+                    tableContainerRef.current.scrollLeft = scrollLeft;
+                }
+                if (duplicateHeaderRef.current && Math.abs(duplicateHeaderRef.current.scrollLeft - scrollLeft) > 1) {
+                    duplicateHeaderRef.current.scrollLeft = scrollLeft;
+                }
+            }
+        };
+
+        table.addEventListener('scroll', handleTableScroll);
+        top.addEventListener('scroll', handleTopScroll);
+
+        return () => {
+            table.removeEventListener('scroll', handleTableScroll);
+            top.removeEventListener('scroll', handleTopScroll);
+        };
+    }, []);
+
+    // Effect for duplicate header scrolling and syncing widths
+    useEffect(() => {
+        const dup = duplicateHeaderRef.current;
+        const table = tableContainerRef.current;
+        const top = topScrollContainerRef.current;
+
+        const handleDupScroll = () => {
+             if (!dup) return;
+             const scrollLeft = dup.scrollLeft;
+             if (table && Math.abs(table.scrollLeft - scrollLeft) > 1) table.scrollLeft = scrollLeft;
+             if (top && Math.abs(top.scrollLeft - scrollLeft) > 1) top.scrollLeft = scrollLeft;
+        };
+
+        if (dup) {
+            dup.addEventListener('scroll', handleDupScroll);
+            if (table) dup.scrollLeft = table.scrollLeft;
+        }
+
+        // Sync widths of columns
+        if (showStickyHeader && dup && table) {
+            const originalThs = table.querySelectorAll('thead th');
+            const duplicateThs = dup.querySelectorAll('thead th');
+            if (originalThs.length === duplicateThs.length) {
+                for (let i = 0; i < originalThs.length; i++) {
+                    duplicateThs[i].style.minWidth = `${originalThs[i].offsetWidth}px`;
+                    duplicateThs[i].style.width = `${originalThs[i].offsetWidth}px`;
+                }
+            }
+        }
+
+        return () => {
+            if (dup) dup.removeEventListener('scroll', handleDupScroll);
+        };
+    }, [showStickyHeader, tableWidth, routine, overtimeVisibility, selectedDay, viewMode]);
+
+    // Track window scroll for sticky header visibility
+    useEffect(() => {
+        const handleWindowScroll = () => {
+            if (tableContainerRef.current) {
+                const rect = tableContainerRef.current.getBoundingClientRect();
+                // 64px is navbar height. Support intersection below.
+                if (rect.top <= 64 && rect.bottom > 150) {
+                    setShowStickyHeader(true);
+                    setHeaderLayout({ left: rect.left, width: rect.width });
+                } else {
+                    setShowStickyHeader(false);
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleWindowScroll);
+        window.addEventListener('resize', handleWindowScroll);
+        handleWindowScroll(); // Initialize checking
+
+        return () => {
+            window.removeEventListener('scroll', handleWindowScroll);
+            window.removeEventListener('resize', handleWindowScroll);
+        };
+    }, []);
+
     useEffect(() => {
         fetchData();
     }, []);
@@ -160,6 +268,24 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             setLoading(false);
         }
     };
+
+    // Sync table width to scrollbars
+    useEffect(() => {
+        const updateWidth = () => {
+            if (tableContainerRef.current) {
+                setTableWidth(tableContainerRef.current.scrollWidth);
+            }
+        };
+
+        updateWidth();
+        const timer = setTimeout(updateWidth, 100);
+
+        window.addEventListener('resize', updateWidth);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', updateWidth);
+        };
+    }, [routine, metadata, overtimeVisibility, loading, selectedDay, viewMode]);
 
 
 
@@ -765,6 +891,21 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     // Determine active time slots based on selected course
     const activeTimeSlots = isLabCourse(formData.course_id) ? labSlots : theorySlots;
 
+    const renderTableHeader = () => (
+        <thead className="text-xs uppercase bg-muted/50 text-muted-foreground">
+            <tr>
+                <th className="px-4 py-4 w-48 font-bold border-r border-border text-center sticky left-0 bg-secondary z-20 transition-colors">
+                    {(viewMode === 'master') ? 'Batch' : 'Day'}
+                </th>
+                {currentTheorySlots.map(slot => (
+                    <th key={slot} className="px-4 py-3 border-r border-border text-center min-w-[120px]">
+                        {slot}
+                    </th>
+                ))}
+            </tr>
+        </thead>
+    );
+
     return (
         <div className="space-y-6 max-w-[100vw] overflow-x-hidden px-4 relative">
             {/* Header Section */}
@@ -1157,22 +1298,38 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         <div className="space-y-6 max-w-[100vw] overflow-x-hidden px-4 relative">
             {/* Header Section */}
             {/* ... rest of your code ... */}
+            {/* Sticky Duplicate Header */}
+            {showStickyHeader && (
+                <div 
+                    className="fixed top-[64px] z-40 bg-card border-b border-border shadow-md pointer-events-auto"
+                    style={{ left: headerLayout.left, width: headerLayout.width }}
+                >
+                    <div 
+                        className="overflow-x-auto no-scrollbar" 
+                        ref={duplicateHeaderRef}
+                        style={{ width: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                        <table className="w-full text-sm text-left border-collapse" style={{ width: tableWidth }}>
+                            {renderTableHeader()}
+                        </table>
+                    </div>
+                </div>
+            )}
+
             {/* Master Schedule Table */}
-            <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table id="routine-view-table" className="w-full text-sm text-left">
-                        <thead className="text-xs uppercase bg-muted/50 text-muted-foreground">
-                            <tr>
-                                <th className="px-4 py-4 w-48 font-bold border-r border-border text-center sticky left-0 bg-secondary z-10 transition-colors">
-                                    {(viewMode === 'master') ? 'Batch' : 'Day'}
-                                </th>
-                                {currentTheorySlots.map(slot => (
-                                    <th key={slot} className="px-4 py-3 border-r border-border text-center min-w-[120px]">
-                                        {slot}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
+            <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden table-container-wrapper">
+                {/* Top Scrollbar */}
+                <div
+                    ref={topScrollContainerRef}
+                    className="overflow-x-auto border-b border-border bg-muted/10 table-scroll-area"
+                    style={{ height: '16px' }}
+                >
+                    <div style={{ width: tableWidth, height: '1px' }}></div>
+                </div>
+
+                <div className="overflow-x-auto table-scroll-area" ref={tableContainerRef}>
+                    <table id="routine-view-table" className="w-full text-sm text-left border-collapse">
+                        {renderTableHeader()}
                         <tbody className="divide-y divide-border">
                             {/* Logic for Master View: Rows = Batches */}
                             {(viewMode === 'master') && (

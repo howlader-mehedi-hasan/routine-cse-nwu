@@ -585,7 +585,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const activeTimeSlots = isLabCourse(newClassData.courseId) ? labSlots : theorySlots;
 
     return (
-        <div className="space-y-6 flex flex-col max-w-[100vw] overflow-x-hidden px-4 relative">
+        <div className="space-y-6 flex flex-col max-w-[100vw] px-4 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-foreground">Weekly Schedule</h2>
@@ -659,17 +659,17 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 </div>
             )}
 
-            <div className="bg-card rounded-lg border border-border shadow-sm">
+            <div className="bg-card rounded-lg border border-border shadow-sm table-container-wrapper">
                 {/* Top Scrollbar */}
                 <div
                     ref={topScrollContainerRef}
-                    className="overflow-x-auto overflow-y-hidden border-b border-border bg-muted/10"
-                    style={{ height: '14px' }}
+                    className="overflow-x-auto border-b border-border bg-muted/10 table-scroll-area"
+                    style={{ height: '16px' }}
                 >
                     <div style={{ width: tableWidth, height: '1px' }}></div>
                 </div>
 
-                <div className="overflow-x-auto" ref={tableContainerRef}>
+                <div className="overflow-x-auto table-scroll-area" ref={tableContainerRef}>
                     <table id="week-routine-table" className="w-full text-sm text-left border-collapse">
                         {renderTableHeader()}
                         <tbody className="divide-y divide-border">

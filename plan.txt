@@ -1,0 +1,1 @@
+horaizental scrol bar is not showing in week view for week schedule routine table
