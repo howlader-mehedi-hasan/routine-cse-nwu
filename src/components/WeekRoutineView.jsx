@@ -27,7 +27,10 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     // Scroll Sync Refs & State
     const tableContainerRef = useRef(null);
     const topScrollContainerRef = useRef(null);
+    const duplicateHeaderRef = useRef(null);
     const [tableWidth, setTableWidth] = useState(0);
+    const [showStickyHeader, setShowStickyHeader] = useState(false);
+    const [headerLayout, setHeaderLayout] = useState({ left: 0, width: 0 });
 
     // Add Class Modal State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -129,6 +132,9 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 if (Math.abs(topScrollContainerRef.current.scrollLeft - scrollLeft) > 1) {
                     topScrollContainerRef.current.scrollLeft = scrollLeft;
                 }
+                if (duplicateHeaderRef.current && Math.abs(duplicateHeaderRef.current.scrollLeft - scrollLeft) > 1) {
+                    duplicateHeaderRef.current.scrollLeft = scrollLeft;
+                }
             }
         };
 
@@ -137,6 +143,9 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 const scrollLeft = topScrollContainerRef.current.scrollLeft;
                 if (Math.abs(tableContainerRef.current.scrollLeft - scrollLeft) > 1) {
                     tableContainerRef.current.scrollLeft = scrollLeft;
+                }
+                if (duplicateHeaderRef.current && Math.abs(duplicateHeaderRef.current.scrollLeft - scrollLeft) > 1) {
+                    duplicateHeaderRef.current.scrollLeft = scrollLeft;
                 }
             }
         };
@@ -147,6 +156,66 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         return () => {
             table.removeEventListener('scroll', handleTableScroll);
             top.removeEventListener('scroll', handleTopScroll);
+        };
+    }, []);
+
+    // Effect for duplicate header scrolling and syncing widths
+    useEffect(() => {
+        const dup = duplicateHeaderRef.current;
+        const table = tableContainerRef.current;
+        const top = topScrollContainerRef.current;
+
+        const handleDupScroll = () => {
+             if (!dup) return;
+             const scrollLeft = dup.scrollLeft;
+             if (table && Math.abs(table.scrollLeft - scrollLeft) > 1) table.scrollLeft = scrollLeft;
+             if (top && Math.abs(top.scrollLeft - scrollLeft) > 1) top.scrollLeft = scrollLeft;
+        };
+
+        if (dup) {
+            dup.addEventListener('scroll', handleDupScroll);
+            if (table) dup.scrollLeft = table.scrollLeft;
+        }
+
+        // Sync widths of columns
+        if (showStickyHeader && dup && table) {
+            const originalThs = table.querySelectorAll('thead th');
+            const duplicateThs = dup.querySelectorAll('thead th');
+            if (originalThs.length === duplicateThs.length) {
+                for (let i = 0; i < originalThs.length; i++) {
+                    duplicateThs[i].style.minWidth = `${originalThs[i].offsetWidth}px`;
+                    duplicateThs[i].style.width = `${originalThs[i].offsetWidth}px`;
+                }
+            }
+        }
+
+        return () => {
+            if (dup) dup.removeEventListener('scroll', handleDupScroll);
+        };
+    }, [showStickyHeader, tableWidth, routine, overtimeVisibility]);
+
+    // Track window scroll for sticky header visibility
+    useEffect(() => {
+        const handleWindowScroll = () => {
+            if (tableContainerRef.current) {
+                const rect = tableContainerRef.current.getBoundingClientRect();
+                // 64px is navbar height. Support intersection below.
+                if (rect.top <= 64 && rect.bottom > 150) {
+                    setShowStickyHeader(true);
+                    setHeaderLayout({ left: rect.left, width: rect.width });
+                } else {
+                    setShowStickyHeader(false);
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleWindowScroll);
+        window.addEventListener('resize', handleWindowScroll);
+        handleWindowScroll(); // Initialize checking
+
+        return () => {
+            window.removeEventListener('scroll', handleWindowScroll);
+            window.removeEventListener('resize', handleWindowScroll);
         };
     }, []);
 
@@ -332,6 +401,54 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     };
 
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    const renderTableHeader = () => (
+        <thead className="text-xs uppercase bg-muted/50 text-muted-foreground">
+            <tr>
+                <th className="px-4 py-4 w-32 font-bold border border-border !border-r-4 !border-r-slate-300 dark:!border-r-slate-600 text-center sticky left-0 bg-secondary z-20" rowSpan={2}>
+                    Batch
+                </th>
+                {days.map(day => (
+                    <th key={day} colSpan={getVisibleSlots(day).length} className="px-4 py-2 border border-border !border-r-4 !border-r-slate-300 dark:!border-r-slate-600 text-center font-bold text-lg bg-indigo-100/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 min-w-[200px]">
+                        <div className="flex items-center justify-center gap-2">
+                            <span>{day}</span>
+                            {canEdit && (
+                                <button
+                                    onClick={() => setOvertimeVisibility(prev => ({ ...prev, [day]: !prev[day] }))}
+                                    className={cn(
+                                        "ml-2 inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                                        overtimeVisibility[day] ? "bg-indigo-600" : "bg-muted-foreground/30"
+                                    )}
+                                    title="Toggle Overtime"
+                                >
+                                    <span
+                                        className={cn(
+                                            "inline-block h-3 w-3 transform rounded-full bg-white transition-transform",
+                                            overtimeVisibility[day] ? "translate-x-3.5" : "translate-x-0.5"
+                                        )}
+                                    />
+                                </button>
+                            )}
+                        </div>
+                    </th>
+                ))}
+            </tr>
+            <tr>
+                {days.map(day => (
+                    <React.Fragment key={day}>
+                        {getVisibleSlots(day).map((slot, index, array) => (
+                            <th key={`${day}-${slot}`} className={cn(
+                                "px-2 py-1 border border-border text-center min-w-[100px] whitespace-nowrap text-[10px]",
+                                index === array.length - 1 && "!border-r-4 !border-r-slate-300 dark:!border-r-slate-600"
+                            )}>
+                                {slot}
+                            </th>
+                        ))}
+                    </React.Fragment>
+                ))}
+            </tr>
+        </thead>
+    );
 
     const renderRawCell = (batchId, timeSlot, currentDay) => {
         // Find class for specific day
@@ -524,6 +641,24 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 </div>
             </div>
 
+            {/* Sticky Duplicate Header */}
+            {showStickyHeader && (
+                <div 
+                    className="fixed top-[64px] z-40 bg-card border-b border-border shadow-md pointer-events-auto"
+                    style={{ left: headerLayout.left, width: headerLayout.width }}
+                >
+                    <div 
+                        className="overflow-x-auto no-scrollbar" 
+                        ref={duplicateHeaderRef}
+                        style={{ width: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                        <table className="w-full text-sm text-left border-collapse" style={{ width: tableWidth }}>
+                            {renderTableHeader()}
+                        </table>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-card rounded-lg border border-border shadow-sm">
                 {/* Top Scrollbar */}
                 <div
@@ -536,51 +671,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
                 <div className="overflow-x-auto" ref={tableContainerRef}>
                     <table id="week-routine-table" className="w-full text-sm text-left border-collapse">
-                        <thead className="text-xs uppercase bg-muted/50 text-muted-foreground">
-                            <tr>
-                                <th className="px-4 py-4 w-32 font-bold border border-border !border-r-4 !border-r-slate-300 dark:!border-r-slate-600 text-center sticky left-0 bg-secondary z-20" rowSpan={2}>
-                                    Batch
-                                </th>
-                                {days.map(day => (
-                                    <th key={day} colSpan={getVisibleSlots(day).length} className="px-4 py-2 border border-border !border-r-4 !border-r-slate-300 dark:!border-r-slate-600 text-center font-bold text-lg bg-indigo-100/50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 min-w-[200px]">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <span>{day}</span>
-                                            {canEdit && (
-                                                <button
-                                                    onClick={() => setOvertimeVisibility(prev => ({ ...prev, [day]: !prev[day] }))}
-                                                    className={cn(
-                                                        "ml-2 inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500",
-                                                        overtimeVisibility[day] ? "bg-indigo-600" : "bg-muted-foreground/30"
-                                                    )}
-                                                    title="Toggle Overtime"
-                                                >
-                                                    <span
-                                                        className={cn(
-                                                            "inline-block h-3 w-3 transform rounded-full bg-white transition-transform",
-                                                            overtimeVisibility[day] ? "translate-x-3.5" : "translate-x-0.5"
-                                                        )}
-                                                    />
-                                                </button>
-                                            )}
-                                        </div>
-                                    </th>
-                                ))}
-                            </tr>
-                            <tr>
-                                {days.map(day => (
-                                    <React.Fragment key={day}>
-                                        {getVisibleSlots(day).map((slot, index, array) => (
-                                            <th key={`${day}-${slot}`} className={cn(
-                                                "px-2 py-1 border border-border text-center min-w-[100px] whitespace-nowrap text-[10px]",
-                                                index === array.length - 1 && "!border-r-4 !border-r-slate-300 dark:!border-r-slate-600"
-                                            )}>
-                                                {slot}
-                                            </th>
-                                        ))}
-                                    </React.Fragment>
-                                ))}
-                            </tr>
-                        </thead>
+                        {renderTableHeader()}
                         <tbody className="divide-y divide-border">
                             {metadata.batches.map(batch => (
                                 <tr key={batch.id} className="hover:bg-muted/10">

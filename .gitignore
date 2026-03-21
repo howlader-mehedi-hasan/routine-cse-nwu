@@ -1,3 +1,14 @@
 .env
 .venv
 node_modules
+.DS_Store
+.env.local
+api/.DS_Store
+Backup/.DS_Store
+controllers/.DS_Store
+middleware/.DS_Store
+public/.DS_Store
+repository/.DS_Store
+routes/.DS_Store
+src/.DS_Store
+utils/.DS_Store
