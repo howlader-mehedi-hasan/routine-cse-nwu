@@ -3,15 +3,17 @@ import {
     createFaculty, updateFaculty, deleteFaculty, getFaculty,
     createCourse, updateCourse, deleteCourse, getCourses,
     createRoom, updateRoom, deleteRoom, getRooms,
-    createBatch, updateBatch, deleteBatch, getBatches
+    createBatch, updateBatch, deleteBatch, getBatches,
+    exportSystemBackup, importSystemBackup
 } from '../services/api';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import toast from 'react-hot-toast';
-import { Users, BookOpen, MapPin, Layers, Save, Edit, Trash2, Copy, X, Plus, Search } from 'lucide-react';
+import { Users, BookOpen, MapPin, Layers, Save, Edit, Trash2, Copy, X, Plus, Search, HardDriveDownload, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import { useRef } from 'react';
 
 const AdminPanel = () => {
     const { hasPermission } = useAuth();
@@ -30,6 +32,7 @@ const AdminPanel = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const fileInputRef = useRef(null);
 
     // Room Filter State
     const [showClassrooms, setShowClassrooms] = useState(true);
@@ -168,6 +171,64 @@ const AdminPanel = () => {
         setBatchForm(initialBatchForm);
     };
 
+    const handleSystemExport = async () => {
+        const loadingToast = toast.loading('Generating system backup...');
+        try {
+            const response = await exportSystemBackup();
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, '0');
+            const formattedDate = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}`;
+            const formattedTime = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+            const filename = `full_system_backup_${formattedDate}_${formattedTime}.json`;
+
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+
+            toast.success('Backup exported successfully!', { id: loadingToast });
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error('Failed to export backup.', { id: loadingToast });
+        }
+    };
+
+    const handleSystemRestore = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const processFileImport = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        event.target.value = null;
+
+        if (!window.confirm('WARNING: This will completely replace the current database with the backup data. All existing records will be deleted. Are you sure?')) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const loadingToast = toast.loading('Restoring system backup...');
+            try {
+                const jsonContent = JSON.parse(e.target.result);
+                await importSystemBackup(jsonContent);
+                toast.success('System restored successfully!', { id: loadingToast });
+                fetchData();
+            } catch (error) {
+                console.error("Import failed:", error);
+                toast.error(error.response?.data?.message || 'Failed to restore backup.', { id: loadingToast });
+            }
+        };
+        reader.readAsText(file);
+    };
+
     const filteredData = useMemo(() => {
         let result = dataList.filter(item => {
             const query = searchQuery.toLowerCase();
@@ -248,9 +309,39 @@ const AdminPanel = () => {
 
     return (
         <div className="w-full px-6 mx-auto space-y-8 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-3xl font-bold tracking-tight text-foreground">Database Admin Dashboard</h2>
-                <p className="text-muted-foreground mt-1">Manage system data, schedule, and configurations.</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 className="text-3xl font-bold tracking-tight text-foreground">Database Admin Dashboard</h2>
+                    <p className="text-muted-foreground mt-1">Manage system data, schedule, and configurations.</p>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={processFileImport}
+                        accept=".json"
+                        className="hidden"
+                    />
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleSystemExport}
+                        className="bg-background hover:bg-muted font-medium text-muted-foreground hover:text-indigo-600 transition-colors"
+                    >
+                        <HardDriveDownload className="mr-2 h-4 w-4" />
+                        Backup All
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleSystemRestore}
+                        className="bg-background hover:bg-muted font-medium text-muted-foreground hover:text-emerald-600 transition-colors"
+                    >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Restore All
+                    </Button>
+                </div>
             </div>
 
             {/* Insight Stats Cards */}

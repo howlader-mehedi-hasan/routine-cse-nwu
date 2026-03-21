@@ -45,6 +45,9 @@ export const clearRoutine = () => api.delete('/routine/clear');
 export const exportRoutine = () => api.get('/routine/export', { responseType: 'blob' });
 export const importRoutine = (data) => api.post('/routine/import', data);
 
+export const exportSystemBackup = () => api.get('/backup/export', { responseType: 'blob' });
+export const importSystemBackup = (data) => api.post('/backup/import', data);
+
 export const getSettings = () => api.get('/settings');
 export const updateSettings = (data) => api.put('/settings', data);
 
