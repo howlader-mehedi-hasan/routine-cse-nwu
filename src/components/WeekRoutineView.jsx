@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, getSettings, exportRoutine, importRoutine } from '../services/api';
+import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, getSettings, updateSettings, exportRoutine, importRoutine } from '../services/api';
 import { generateWeeklyRoutinePDF } from '../utils/pdfGenerator';
 import { Download, Check, X, MapPin, Plus, Edit2, Trash, Upload, HardDriveDownload } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -70,15 +70,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         headerFontSize: 16
     };
 
-    // Load initial PDF settings from localStorage
-    const [pdfSettings, setPdfSettings] = useState(() => {
-        try {
-            const saved = localStorage.getItem('nwu_routine_pdf_settings');
-            return saved ? JSON.parse(saved) : defaultPdfSettings;
-        } catch (e) {
-            return defaultPdfSettings;
-        }
-    });
+    // Load initial PDF settings in fetchData
+    const [pdfSettings, setPdfSettings] = useState(defaultPdfSettings);
 
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
@@ -537,10 +530,16 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         }
     };
 
-    const handleSavePdfSettings = (newSettings) => {
+    const handleSavePdfSettings = async (newSettings) => {
         setPdfSettings(newSettings);
-        localStorage.setItem('nwu_routine_pdf_settings', JSON.stringify(newSettings));
-        toast.success("PDF settings saved!");
+        try {
+            await updateSettings({ pdf_settings_week: newSettings });
+            toast.success("PDF settings saved globally!");
+        } catch (error) {
+            console.error("Failed to save PDF settings", error);
+            toast.error("Failed to save PDF settings to server. Saving locally only.");
+            localStorage.setItem('nwu_routine_pdf_settings', JSON.stringify(newSettings));
+        }
     };
 
     const processFileImport = async (event) => {

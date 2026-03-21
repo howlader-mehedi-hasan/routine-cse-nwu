@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Save, RotateCcw, Download, Upload } from 'lucide-react';
+import { X, Plus, Trash2, Save, RotateCcw, Download, Upload, Cloud } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import toast from 'react-hot-toast';
@@ -9,9 +9,10 @@ import { cn } from '../lib/utils';
 const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
     const [settings, setSettings] = useState({
         general: { theory_slots: [], lab_slots: [], slot_mapping: {} },
-        daily_overrides: {}
+        daily_overrides: {},
+        app_settings: { auto_restore_on_startup: false, backup_schedule: { enabled: false, time: '02:00' } }
     });
-    const [activeTab, setActiveTab] = useState('general'); // 'general' or 'Monday', etc.
+    const [activeTab, setActiveTab] = useState('general'); // 'general', 'cloud', 'Monday', etc.
     const [loading, setLoading] = useState(true);
 
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -216,6 +217,15 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                     >
                         General (Defaults)
                     </button>
+                    <button
+                        onClick={() => setActiveTab('cloud')}
+                        className={cn(
+                            "px-4 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-all flex items-center gap-1.5",
+                            activeTab === 'cloud' ? "bg-card text-indigo-600 shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        <Cloud className="w-4 h-4" /> Cloud Storage
+                    </button>
                     {days.map(day => (
                         <button
                             key={day}
@@ -233,7 +243,91 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                 </div>
 
                 <div className="p-6 space-y-8">
-                    {activeTab !== 'general' && !isOverridden && (
+                    {activeTab === 'cloud' && (
+                        <div className="space-y-6 animate-in fade-in duration-300">
+                            <div>
+                                <h4 className="font-semibold text-lg text-foreground">Cloud Sync & Automation</h4>
+                                <p className="text-sm text-muted-foreground">Configure automated backups and startup behavior.</p>
+                            </div>
+
+                            <div className="space-y-4 bg-muted/20 p-5 rounded-xl border border-border/50">
+                                {/* Auto-Restore Toggle */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h5 className="font-medium text-foreground">Cloud Wake-Up (Auto-Restore)</h5>
+                                        <p className="text-xs text-muted-foreground mt-0.5">Automatically restore the latest cloud backup when the server starts up.</p>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer"
+                                            checked={settings.app_settings?.auto_restore_on_startup || false}
+                                            onChange={(e) => setSettings({
+                                                ...settings,
+                                                app_settings: {
+                                                    ...(settings.app_settings || {}),
+                                                    auto_restore_on_startup: e.target.checked
+                                                }
+                                            })}
+                                        />
+                                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+
+                                <div className="w-full h-px bg-border"></div>
+
+                                {/* Scheduled Backups */}
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <h5 className="font-medium text-foreground">Scheduled Daily Backup</h5>
+                                        <p className="text-xs text-muted-foreground mt-0.5 mb-3">Automatically create a cloud snapshot every day at the designated time.</p>
+                                        
+                                        {settings.app_settings?.backup_schedule?.enabled && (
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="text-sm text-muted-foreground">Execution Time:</span>
+                                                <Input 
+                                                    type="time" 
+                                                    value={settings.app_settings?.backup_schedule?.time || '02:00'}
+                                                    onChange={(e) => setSettings({
+                                                        ...settings,
+                                                        app_settings: {
+                                                            ...(settings.app_settings || {}),
+                                                            backup_schedule: {
+                                                                ...((settings.app_settings || {}).backup_schedule || {}),
+                                                                time: e.target.value
+                                                            }
+                                                        }
+                                                    })}
+                                                    className="w-32 h-8 text-sm"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+                                        <input 
+                                            type="checkbox" 
+                                            className="sr-only peer"
+                                            checked={settings.app_settings?.backup_schedule?.enabled || false}
+                                            onChange={(e) => setSettings({
+                                                ...settings,
+                                                app_settings: {
+                                                    ...(settings.app_settings || {}),
+                                                    backup_schedule: {
+                                                        time: '02:00',
+                                                        ...((settings.app_settings || {}).backup_schedule || {}),
+                                                        enabled: e.target.checked
+                                                    }
+                                                }
+                                            })}
+                                        />
+                                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab !== 'cloud' && activeTab !== 'general' && !isOverridden && (
                         <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-lg flex items-center justify-between gap-4">
                             <p className="text-sm text-amber-700 dark:text-amber-400">
                                 This day is currently using <strong>General Defaults</strong>. Edit any field to create a custom configuration for {activeTab}.
@@ -252,6 +346,9 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                         </div>
                     )}
 
+                    {/* Schedule Config */}
+                    {activeTab !== 'cloud' && (
+                        <>
                     {/* Theory Slots */}
                     <section className="space-y-4">
                         <div className="flex items-center justify-between">
@@ -342,7 +439,7 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                                         onChange={(e) => handleMappingChange(theorySlot, e.target.value)}
                                     >
                                         <option value="">No Mapping</option>
-                                        {currentConfig.lab_slots.map(ls => (
+                                        {currentConfig?.lab_slots?.map(ls => (
                                             <option key={ls} value={ls}>{ls}</option>
                                         ))}
                                     </select>
@@ -350,6 +447,8 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                             ))}
                         </div>
                     </section>
+                    </>
+                    )}
                 </div>
 
                 <div className="flex flex-col gap-4 p-6 border-t border-border bg-muted/20 rounded-b-xl">

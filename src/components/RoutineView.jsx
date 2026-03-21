@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getRoutine, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, getSettings } from '../services/api';
+import { getRoutine, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, getSettings, updateSettings } from '../services/api';
 import { generateRoutineViewPDF } from '../utils/pdfGenerator';
 import autoTable from 'jspdf-autotable';
 import { Download, Plus, Filter, Calendar, Settings, X, Check, Trash2, Edit2, MapPin } from 'lucide-react';
@@ -117,20 +117,19 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         orientation: "l"
     };
 
-    // Load initial PDF settings from localStorage
-    const [pdfSettings, setPdfSettings] = useState(() => {
-        try {
-            const saved = localStorage.getItem('nwu_routine_view_pdf_settings');
-            return saved ? JSON.parse(saved) : defaultPdfSettings;
-        } catch (e) {
-            return defaultPdfSettings;
-        }
-    });
+    // Load initial PDF settings in fetchData
+    const [pdfSettings, setPdfSettings] = useState(defaultPdfSettings);
 
-    const handleSavePdfSettings = (newSettings) => {
+    const handleSavePdfSettings = async (newSettings) => {
         setPdfSettings(newSettings);
-        localStorage.setItem('nwu_routine_view_pdf_settings', JSON.stringify(newSettings));
-        toast.success("PDF settings saved!");
+        try {
+            await updateSettings({ pdf_settings_routine: newSettings });
+            toast.success("PDF settings saved globally!");
+        } catch (error) {
+            console.error("Failed to save PDF settings", error);
+            toast.error("Failed to save PDF settings to server. Saving locally only.");
+            localStorage.setItem('nwu_routine_view_pdf_settings', JSON.stringify(newSettings));
+        }
     };
 
     // Sync scroll position

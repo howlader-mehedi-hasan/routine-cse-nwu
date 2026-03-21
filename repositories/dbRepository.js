@@ -189,6 +189,63 @@ class DBRepository {
         }
         return data;
     }
+
+    // --- Cloud Storage (Backups) ---
+    async uploadToCloud(filename, fileData) {
+        const { data, error } = await this.supabase.storage
+            .from('backups')
+            .upload(filename, fileData, {
+                contentType: 'application/json',
+                upsert: true
+            });
+        
+        if (error) {
+            console.error('Error uploading backup to cloud:', error);
+            throw error;
+        }
+        return data;
+    }
+
+    async listCloudBackups() {
+        const { data, error } = await this.supabase.storage
+            .from('backups')
+            .list('', {
+                limit: 100,
+                offset: 0,
+                sortBy: { column: 'created_at', order: 'desc' },
+            });
+        
+        if (error) {
+            console.error('Error listing cloud backups:', error);
+            throw error;
+        }
+        // Filter out empty '.emptyFolderPlaceholder' if any exists
+        return data.filter(file => file.name !== '.emptyFolderPlaceholder');
+    }
+
+    async downloadFromCloud(filename) {
+        const { data, error } = await this.supabase.storage
+            .from('backups')
+            .download(filename);
+        
+        if (error) {
+            console.error('Error downloading backup from cloud:', error);
+            throw error;
+        }
+        return data;
+    }
+
+    async deleteFromCloud(filename) {
+        const { data, error } = await this.supabase.storage
+            .from('backups')
+            .remove([filename]);
+            
+        if (error) {
+            console.error('Error deleting backup from cloud:', error);
+            throw error;
+        }
+        return true;
+    }
 }
 
 const dbRepositoryInstance = new DBRepository();

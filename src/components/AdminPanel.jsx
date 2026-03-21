@@ -3,17 +3,16 @@ import {
     createFaculty, updateFaculty, deleteFaculty, getFaculty,
     createCourse, updateCourse, deleteCourse, getCourses,
     createRoom, updateRoom, deleteRoom, getRooms,
-    createBatch, updateBatch, deleteBatch, getBatches,
-    exportSystemBackup, importSystemBackup
+    createBatch, updateBatch, deleteBatch, getBatches
 } from '../services/api';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import toast from 'react-hot-toast';
-import { Users, BookOpen, MapPin, Layers, Save, Edit, Trash2, Copy, X, Plus, Search, HardDriveDownload, Upload } from 'lucide-react';
+import { Users, BookOpen, MapPin, Layers, Save, Edit, Trash2, Copy, X, Plus, Search, Download } from 'lucide-react'; // Removed HardDriveDownload, Upload
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { useRef } from 'react';
+import BackupDashboard from './BackupDashboard';
 
 const AdminPanel = () => {
     const { hasPermission } = useAuth();
@@ -32,7 +31,10 @@ const AdminPanel = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const fileInputRef = useRef(null);
+    // const fileInputRef = useRef(null); // Removed
+
+    // Added state for BackupDashboard modal
+    const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
     // Room Filter State
     const [showClassrooms, setShowClassrooms] = useState(true);
@@ -137,6 +139,7 @@ const AdminPanel = () => {
         setEditingId(null);
         // Exclude ID to treat as new
         const { id, ...rest } = item;
+        if (id) { /* Ignore id */ }
         if (activeTab === 'faculty') setFacultyForm(rest);
         if (activeTab === 'courses') setCourseForm(rest);
         if (activeTab === 'rooms') setRoomForm(rest);
@@ -171,63 +174,7 @@ const AdminPanel = () => {
         setBatchForm(initialBatchForm);
     };
 
-    const handleSystemExport = async () => {
-        const loadingToast = toast.loading('Generating system backup...');
-        try {
-            const response = await exportSystemBackup();
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-
-            const now = new Date();
-            const pad = (n) => String(n).padStart(2, '0');
-            const formattedDate = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}`;
-            const formattedTime = `${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-            const filename = `full_system_backup_${formattedDate}_${formattedTime}.json`;
-
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-
-            toast.success('Backup exported successfully!', { id: loadingToast });
-        } catch (error) {
-            console.error("Export failed:", error);
-            toast.error('Failed to export backup.', { id: loadingToast });
-        }
-    };
-
-    const handleSystemRestore = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    const processFileImport = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        event.target.value = null;
-
-        if (!window.confirm('WARNING: This will completely replace the current database with the backup data. All existing records will be deleted. Are you sure?')) {
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const loadingToast = toast.loading('Restoring system backup...');
-            try {
-                const jsonContent = JSON.parse(e.target.result);
-                await importSystemBackup(jsonContent);
-                toast.success('System restored successfully!', { id: loadingToast });
-                fetchData();
-            } catch (error) {
-                console.error("Import failed:", error);
-                toast.error(error.response?.data?.message || 'Failed to restore backup.', { id: loadingToast });
-            }
-        };
-        reader.readAsText(file);
-    };
+    // Removed handleSystemExport, handleSystemRestore, processFileImport
 
     const filteredData = useMemo(() => {
         let result = dataList.filter(item => {
@@ -315,33 +262,18 @@ const AdminPanel = () => {
                     <p className="text-muted-foreground mt-1">Manage system data, schedule, and configurations.</p>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={processFileImport}
-                        accept=".json"
-                        className="hidden"
-                    />
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleSystemExport}
-                        className="bg-background hover:bg-muted font-medium text-muted-foreground hover:text-indigo-600 transition-colors"
-                    >
-                        <HardDriveDownload className="mr-2 h-4 w-4" />
-                        Backup All
-                    </Button>
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleSystemRestore}
-                        className="bg-background hover:bg-muted font-medium text-muted-foreground hover:text-emerald-600 transition-colors"
-                    >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Restore All
-                    </Button>
-                </div>
+                {/* Backup & Restore Option */}
+                {hasPermission('manage_database') && (
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsBackupModalOpen(true)}
+                            className="bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 dark:bg-indigo-900/20 dark:border-indigo-800/50 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                        >
+                            <Download className="h-4 w-4 mr-2" /> Backup & Restore
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Insight Stats Cards */}
@@ -354,7 +286,7 @@ const AdminPanel = () => {
                         key={idx}
                         className="bg-card rounded-2xl border border-border/50 shadow-sm p-6 flex flex-col justify-center relative overflow-hidden group hover:shadow-md transition-shadow"
                     >
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${stat.color} opacity-[0.08] dark:opacity-10 rounded-bl-[100px] -z-0 transition-transform duration-500 group-hover:scale-125`}></div>
+                        <div className={`absolute top-0 right-0 w-32 h-32 ${stat.color} opacity-[0.08] dark:opacity-10 rounded-bl-[100px] -z-0 transition-transform duration-500 group-hover:scale-125`}></div>
                         <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2 z-10">{stat.label}</span>
                         <div className="flex items-center gap-3 z-10">
                             <span className={`w-3 h-3 rounded-full ${stat.color} shadow-sm`}></span>
@@ -760,6 +692,12 @@ const AdminPanel = () => {
                     </div>
                 </div>
             </div>
+
+            <BackupDashboard 
+                isOpen={isBackupModalOpen}
+                onClose={() => setIsBackupModalOpen(false)}
+                onRestoreSuccess={fetchData} // Pass fetchData to refresh data after restore
+            />
         </div>
     );
 };

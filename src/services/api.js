@@ -48,6 +48,12 @@ export const importRoutine = (data) => api.post('/routine/import', data);
 export const exportSystemBackup = () => api.get('/backup/export', { responseType: 'blob' });
 export const importSystemBackup = (data) => api.post('/backup/import', data);
 
+// Cloud Backup APIs
+export const getCloudBackups = () => api.get('/backup/cloud');
+export const createCloudBackup = () => api.post('/backup/cloud');
+export const restoreCloudBackup = (filename) => api.post('/backup/cloud/restore', { filename });
+export const deleteCloudBackup = (filename) => api.delete(`/backup/cloud/${filename}`);
+
 export const getSettings = () => api.get('/settings');
 export const updateSettings = (data) => api.put('/settings', data);
 
