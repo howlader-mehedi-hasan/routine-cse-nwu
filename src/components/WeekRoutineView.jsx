@@ -644,13 +644,13 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             {/* Sticky Duplicate Header */}
             {showStickyHeader && (
                 <div 
-                    className="fixed top-[64px] z-40 bg-card border-b border-border shadow-md pointer-events-auto"
+                    className="fixed top-[64px] z-40 bg-card border-b border-border shadow-md pointer-events-auto table-container-wrapper"
                     style={{ left: headerLayout.left, width: headerLayout.width }}
                 >
                     <div 
-                        className="overflow-x-auto no-scrollbar" 
+                        className="overflow-x-auto table-scroll-area" 
                         ref={duplicateHeaderRef}
-                        style={{ width: '100%', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                        style={{ width: '100%' }}
                     >
                         <table className="w-full text-sm text-left border-collapse" style={{ width: tableWidth }}>
                             {renderTableHeader()}
