@@ -267,6 +267,24 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             setLoading(false);
         }
     };
+    
+    const sortedBatches = React.useMemo(() => {
+        if (!metadata.batches) return [];
+        return [...metadata.batches].sort((a, b) => {
+            const getSortMetadata = (name) => {
+                const safeName = name || '';
+                const parts = safeName.split(' ');
+                const yearNum = parseInt(parts[0]) || 0;
+                const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
+                return { year: yearNum, sem: semNum };
+            };
+            const metaA = getSortMetadata(a.name);
+            const metaB = getSortMetadata(b.name);
+            if (metaA.year !== metaB.year) return metaA.year - metaB.year;
+            if (metaA.sem !== metaB.sem) return metaA.sem - metaB.sem;
+            return (a.section || '').localeCompare(b.section || '');
+        });
+    }, [metadata.batches]);
 
     // Sync table width to scrollbars
     useEffect(() => {
@@ -1023,7 +1041,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 className="w-60"
                             >
                                 <option value="">Select Section</option>
-                                {metadata.batches.map(b => (
+                                {sortedBatches.map(b => (
                                     <option key={b.id} value={b.id}>{b.name} - {b.section}</option>
                                 ))}
                             </Select>
@@ -1108,7 +1126,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                     className="w-full"
                                 >
                                     <option value="">Select Batch</option>
-                                    {metadata.batches.map(b => (
+                                    {sortedBatches.map(b => (
                                         <option key={b.id} value={b.id}>{b.name} (Sec-{b.section})</option>
                                     ))}
                                 </Select>
@@ -1333,8 +1351,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             {/* Logic for Master View: Rows = Batches */}
                             {(viewMode === 'master') && (
                                 <>
-                                    {metadata.batches
-                                        .map(batch => (
+                                    {sortedBatches.map(batch => (
                                             <tr key={batch.id} className="hover:bg-muted/30 transition-colors">
                                                 <td className="px-4 py-3 font-semibold text-foreground border-r border-border sticky left-0 bg-card z-10 whitespace-nowrap min-w-[200px]">
                                                     <div className="text-xs text-muted-foreground">{batch.name}</div>
@@ -1383,7 +1400,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                 {renderRowCells(batch.id)}
                                             </tr>
                                         ))}
-                                    {metadata.batches.length === 0 && (
+                                    {sortedBatches.length === 0 && (
                                         <tr>
                                             <td colSpan={currentTheorySlots.length + 1} className="px-4 py-8 text-center text-muted-foreground">
                                                 No batches found.

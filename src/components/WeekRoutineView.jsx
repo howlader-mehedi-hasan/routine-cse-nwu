@@ -114,6 +114,24 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         }
     };
 
+    const sortedBatches = React.useMemo(() => {
+        if (!metadata.batches) return [];
+        return [...metadata.batches].sort((a, b) => {
+            const getSortMetadata = (name) => {
+                const safeName = name || '';
+                const parts = safeName.split(' ');
+                const yearNum = parseInt(parts[0]) || 0;
+                const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
+                return { year: yearNum, sem: semNum };
+            };
+            const metaA = getSortMetadata(a.name);
+            const metaB = getSortMetadata(b.name);
+            if (metaA.year !== metaB.year) return metaA.year - metaB.year;
+            if (metaA.sem !== metaB.sem) return metaA.sem - metaB.sem;
+            return (a.section || '').localeCompare(b.section || '');
+        });
+    }, [metadata.batches]);
+
     // Sync scroll position
     useEffect(() => {
         const table = tableContainerRef.current;
@@ -678,7 +696,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     <table id="week-routine-table" className="w-full text-sm text-left border-collapse">
                         {renderTableHeader()}
                         <tbody className="divide-y divide-border">
-                            {metadata.batches.map(batch => (
+                            {sortedBatches.map(batch => (
                                 <tr key={batch.id} className="hover:bg-muted/10">
                                     <td className="px-4 py-3 font-semibold text-foreground border border-border !border-r-4 !border-r-slate-300 dark:!border-r-slate-600 sticky left-0 bg-card z-10 whitespace-nowrap min-w-[150px]">
                                         <div className="text-xs text-muted-foreground">{batch.name}</div>

@@ -54,7 +54,7 @@ const AdminPanel = () => {
     const initialFacultyForm = { name: '', initials: '', type: 'Permanent', email: '', phone: '', designation: 'Lecturer' };
     const initialCourseForm = { code: '', name: '', credit: 3.0, type: 'Theory', assigned_faculty_id: '' };
     const initialRoomForm = { room_number: '', capacity: 40, floor: 1, type: 'Theory' };
-    const initialBatchForm = { name: '', section: 'A', default_room_id: '' };
+    const initialBatchForm = { name: '', year: '1st Year', semester: '1st Sem', section: 'A', default_room_id: '' };
 
     const [facultyForm, setFacultyForm] = useState(initialFacultyForm);
     const [courseForm, setCourseForm] = useState(initialCourseForm);
@@ -111,9 +111,26 @@ const AdminPanel = () => {
                     : await createRoom(roomForm);
             }
             if (activeTab === 'batches') {
+                const batchName = `${batchForm.year} ${batchForm.semester}`;
+                // Check for duplicate batch name + section
+                const isDuplicate = dataList.some(item => 
+                    item.name === batchName && 
+                    item.section === batchForm.section && 
+                    item.id !== editingId
+                );
+
+                if (isDuplicate) {
+                    toast.error(`${batchName} Section ${batchForm.section} already exists!`, { id: loadingToast });
+                    return;
+                }
+
+                const combinedBatchForm = {
+                    ...batchForm,
+                    name: batchName
+                };
                 editingId
-                    ? await updateBatch(editingId, batchForm)
-                    : await createBatch(batchForm);
+                    ? await updateBatch(editingId, combinedBatchForm)
+                    : await createBatch(combinedBatchForm);
             }
 
             toast.success(editingId ? 'Updated Successfully!' : 'Saved Successfully!', { id: loadingToast });
@@ -131,7 +148,13 @@ const AdminPanel = () => {
         if (activeTab === 'faculty') setFacultyForm(item);
         if (activeTab === 'courses') setCourseForm(item);
         if (activeTab === 'rooms') setRoomForm(item);
-        if (activeTab === 'batches') setBatchForm(item);
+        if (activeTab === 'batches') {
+            const batchName = item.name || '';
+            const nameParts = batchName.split(' ');
+            const year = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : '1st Year';
+            const semester = nameParts.length >= 4 ? `${nameParts[2]} ${nameParts[3]}` : '1st Sem';
+            setBatchForm({ ...item, year, semester });
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -143,7 +166,13 @@ const AdminPanel = () => {
         if (activeTab === 'faculty') setFacultyForm(rest);
         if (activeTab === 'courses') setCourseForm(rest);
         if (activeTab === 'rooms') setRoomForm(rest);
-        if (activeTab === 'batches') setBatchForm(rest);
+        if (activeTab === 'batches') {
+            const batchName = rest.name || '';
+            const nameParts = batchName.split(' ');
+            const year = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : '1st Year';
+            const semester = nameParts.length >= 4 ? `${nameParts[2]} ${nameParts[3]}` : '1st Sem';
+            setBatchForm({ ...rest, year, semester });
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         toast('Data copied to form. Modify and Save.', { icon: '📋' });
     };
@@ -217,6 +246,26 @@ const AdminPanel = () => {
                 const numA = parseInt(a.room_number, 10) || 0;
                 const numB = parseInt(b.room_number, 10) || 0;
                 return numA - numB;
+            });
+        }
+
+        // Hierarchical Sorting for Batches tab
+        if (activeTab === 'batches') {
+            result.sort((a, b) => {
+                const getSortMetadata = (name) => {
+                    const safeName = name || '';
+                    const parts = safeName.split(' ');
+                    // "1st Year 1st Sem" -> [1, 1]
+                    const yearNum = parseInt(parts[0]) || 0;
+                    const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
+                    return { year: yearNum, sem: semNum };
+                };
+                const metaA = getSortMetadata(a.name);
+                const metaB = getSortMetadata(b.name);
+
+                if (metaA.year !== metaB.year) return metaA.year - metaB.year;
+                if (metaA.sem !== metaB.sem) return metaA.sem - metaB.sem;
+                return (a.section || '').localeCompare(b.section || '');
             });
         }
 
@@ -447,12 +496,36 @@ const AdminPanel = () => {
 
                                 {activeTab === 'batches' && (
                                     <div className="grid gap-4 md:grid-cols-2">
-                                        <div className="md:col-span-2 grid gap-4 md:grid-cols-2">
-                                            <FormField label="Batch Name">
-                                                <Input value={batchForm.name} onChange={e => setBatchForm({ ...batchForm, name: e.target.value })} placeholder="Batch-25" required />
+                                        <div className="md:col-span-2 grid gap-4 md:grid-cols-3">
+                                            <FormField label="Year">
+                                                <Select
+                                                    value={batchForm.year}
+                                                    onChange={e => setBatchForm({ ...batchForm, year: e.target.value })}
+                                                >
+                                                    <option value="1st Year">1st Year</option>
+                                                    <option value="2nd Year">2nd Year</option>
+                                                    <option value="3rd Year">3rd Year</option>
+                                                    <option value="4th Year">4th Year</option>
+                                                </Select>
+                                            </FormField>
+                                            <FormField label="Semester">
+                                                <Select
+                                                    value={batchForm.semester}
+                                                    onChange={e => setBatchForm({ ...batchForm, semester: e.target.value })}
+                                                >
+                                                    <option value="1st Sem">1st Sem</option>
+                                                    <option value="2nd Sem">2nd Sem</option>
+                                                </Select>
                                             </FormField>
                                             <FormField label="Section">
-                                                <Input value={batchForm.section} onChange={e => setBatchForm({ ...batchForm, section: e.target.value })} placeholder="A" required />
+                                                <Select
+                                                    value={batchForm.section}
+                                                    onChange={e => setBatchForm({ ...batchForm, section: e.target.value })}
+                                                >
+                                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map(s => (
+                                                        <option key={s} value={s}>{s}</option>
+                                                    ))}
+                                                </Select>
                                             </FormField>
                                         </div>
                                         <div className="md:col-span-2">
