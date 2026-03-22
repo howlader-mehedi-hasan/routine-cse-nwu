@@ -206,7 +206,7 @@ class DBRepository {
         return data;
     }
 
-    async listCloudBackups() {
+    async listCloudBackups(prefix = '') {
         const { data, error } = await this.supabase.storage
             .from('backups')
             .list('', {
@@ -219,8 +219,8 @@ class DBRepository {
             console.error('Error listing cloud backups:', error);
             throw error;
         }
-        // Filter out empty '.emptyFolderPlaceholder' if any exists
-        return data.filter(file => file.name !== '.emptyFolderPlaceholder');
+        // Filter out empty '.emptyFolderPlaceholder' if any exists, and optionally match prefix
+        return data.filter(file => file.name !== '.emptyFolderPlaceholder' && file.name.startsWith(prefix));
     }
 
     async downloadFromCloud(filename) {

@@ -23,7 +23,7 @@ const BackupDashboard = ({ isOpen, onClose }) => {
     const fetchCloudBackups = async () => {
         try {
             setLoading(true);
-            const res = await getCloudBackups();
+            const res = await getCloudBackups('system');
             setCloudFiles(res.data.data || []);
         } catch (error) {
             console.error(error);

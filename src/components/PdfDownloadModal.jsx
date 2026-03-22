@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Download, X, Settings2, FileText, Type, Layout, Plus, Save, Upload } from 'lucide-react';
+import { Download, X, Settings2, FileText, Type, Layout, Plus, Save, Upload, Cloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Button } from './ui/Button';
+import { cn } from '../lib/utils';
+import GenericCloudBackup from './GenericCloudBackup';
 
 const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
     const defaultSettings = {
@@ -31,6 +33,7 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
     };
 
     const [settings, setSettings] = useState(initialSettings || defaultSettings);
+    const [activeTab, setActiveTab] = useState('settings');
 
     // Update internal state if initialSettings changes from outside
     React.useEffect(() => {
@@ -162,6 +165,28 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
                     </Button>
                 </div>
 
+                <div className="flex bg-muted/30 p-1 border-b border-border">
+                    <button
+                        onClick={() => setActiveTab('settings')}
+                        className={cn(
+                            "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all",
+                            activeTab === 'settings' ? "bg-card text-indigo-600 shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        Layout Settings
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('cloud')}
+                        className={cn(
+                            "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
+                            activeTab === 'cloud' ? "bg-card text-indigo-600 shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        )}
+                    >
+                        <Cloud className="w-4 h-4" /> Cloud Storage
+                    </button>
+                </div>
+
+                {activeTab === 'settings' && (
                 <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
 
                     {/* Header Customization */}
@@ -559,6 +584,25 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
                     </div>
 
                 </div>
+                )}
+
+                {activeTab === 'cloud' && (
+                    <div className="p-6 max-h-[70vh] overflow-y-auto">
+                        <GenericCloudBackup 
+                            type="pdf_settings"
+                            title="PDF Settings Backups"
+                            description="Save your exact PDF export configurations to the cloud and restore them anytime."
+                            onBackupDataGenerate={async () => settings}
+                            onRestoreDataApply={async (json) => {
+                                if (json.universityName || json.fileName) {
+                                    setSettings({ ...defaultSettings, ...json });
+                                } else {
+                                    throw new Error("Invalid PDF settings file format.");
+                                }
+                            }}
+                        />
+                    </div>
+                )}
 
                 <div className="flex flex-wrap justify-between items-center gap-3 p-5 border-t border-border bg-muted/10">
                     <div className="flex items-center gap-2">

@@ -124,11 +124,54 @@ export const createCloudBackup = async (req, res) => {
 
 export const getCloudBackups = async (req, res) => {
     try {
-        const files = await dbRepository.listCloudBackups();
+        const { type } = req.query; // 'system', 'schedule_settings', 'pdf_settings', 'routine'
+        let prefix = '';
+        if (type === 'system') prefix = 'system_backup_';
+        else if (type === 'schedule_settings') prefix = 'schedule_settings_backup_';
+        else if (type === 'pdf_settings') prefix = 'pdf_settings_backup_';
+        else if (type === 'routine') prefix = 'routine_backup_';
+        
+        const files = await dbRepository.listCloudBackups(prefix);
         res.status(200).json({ data: files });
     } catch (error) {
         console.error("Error fetching cloud backups:", error.message);
         res.status(500).json({ message: 'Failed to fetch cloud backups', error: error.message });
+    }
+};
+
+export const saveCloudBackup = async (req, res) => {
+    try {
+        const { filename, data } = req.body;
+        if (!filename || !data) {
+            return res.status(400).json({ message: 'Filename and data are required' });
+        }
+        
+        const fileContent = JSON.stringify(data, null, 2);
+        await dbRepository.uploadToCloud(filename, fileContent);
+        await logActivity(req.user.id, req.user.fullName || req.user.username, 'Cloud Backup', `Created generic cloud backup: ${filename}`);
+        
+        res.status(201).json({ message: 'Cloud backup saved successfully', filename });
+    } catch (error) {
+        console.error("Error saving cloud backup:", error.message);
+        res.status(500).json({ message: 'Failed to save cloud backup', error: error.message });
+    }
+};
+
+export const getCloudBackupData = async (req, res) => {
+    try {
+        const { filename } = req.query;
+        if (!filename) {
+            return res.status(400).json({ message: 'Filename is required' });
+        }
+        
+        const blob = await dbRepository.downloadFromCloud(filename);
+        const text = await blob.text();
+        const backupData = JSON.parse(text);
+        
+        res.status(200).json({ data: backupData });
+    } catch (error) {
+        console.error("Error fetching cloud backup data:", error.message);
+        res.status(500).json({ message: 'Failed to fetch cloud backup data', error: error.message });
     }
 };
 

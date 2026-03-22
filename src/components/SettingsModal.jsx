@@ -5,6 +5,7 @@ import { Input } from './ui/Input';
 import toast from 'react-hot-toast';
 import { getSettings, updateSettings } from '../services/api';
 import { cn } from '../lib/utils';
+import GenericCloudBackup from './GenericCloudBackup';
 
 const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
     const [settings, setSettings] = useState({
@@ -324,6 +325,22 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                                     </label>
                                 </div>
                             </div>
+
+                            <div className="w-full h-px bg-border my-8" />
+                            
+                            <GenericCloudBackup 
+                                type="schedule_settings"
+                                title="Schedule Settings Cloud Snapshots"
+                                description="Save your exact schedule array and mappings configurations to the cloud and restore them anytime."
+                                onBackupDataGenerate={async () => settings}
+                                onRestoreDataApply={async (data) => {
+                                    if (data && data.general && typeof data.general === 'object') {
+                                        setSettings(data);
+                                    } else {
+                                        throw new Error("Invalid settings file format in cloud backup.");
+                                    }
+                                }}
+                            />
                         </div>
                     )}
 

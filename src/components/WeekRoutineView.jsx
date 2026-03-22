@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, getSettings, updateSettings, exportRoutine, importRoutine } from '../services/api';
 import { generateWeeklyRoutinePDF } from '../utils/pdfGenerator';
-import { Download, Check, X, MapPin, Plus, Edit2, Trash, Upload, HardDriveDownload } from 'lucide-react';
+import { Download, Check, X, MapPin, Plus, Edit2, Trash, Upload, HardDriveDownload, Cloud } from 'lucide-react';
 import { Button } from './ui/Button';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -11,6 +11,7 @@ import PdfDownloadModal from './PdfDownloadModal';
 import { Settings, Settings2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import FacultyContactModal from './ui/FacultyContactModal';
+import CloudRoutineBackupModal from './CloudRoutineBackupModal';
 
 const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const { user, hasPermission } = useAuth();
@@ -50,6 +51,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     // Settings State
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+    const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
     const [scheduleSettings, setScheduleSettings] = useState({
         general: { theory_slots: [], lab_slots: [], slot_mapping: {} },
         daily_overrides: {}
@@ -602,9 +604,13 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                     accept=".json"
                                     onChange={processFileImport}
                                 />
-                                <Button variant="ghost" size="sm" onClick={handleExportBackup} title="Backup Routine" className="text-muted-foreground hover:text-indigo-600">
+                                <Button variant="ghost" size="sm" onClick={() => setIsCloudModalOpen(true)} title="Cloud Backup" className="text-muted-foreground hover:text-blue-600">
+                                    <Cloud className="mr-2 h-4 w-4" />
+                                    Cloud
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={handleExportBackup} title="Local Backup" className="text-muted-foreground hover:text-indigo-600">
                                     <HardDriveDownload className="mr-2 h-4 w-4" />
-                                    Backup
+                                    Local
                                 </Button>
                                 <Button variant="ghost" size="sm" onClick={handleImportBackup} title="Restore Routine" className="text-muted-foreground hover:text-emerald-600">
                                     <Upload className="mr-2 h-4 w-4" />
@@ -1051,7 +1057,25 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 initialSettings={pdfSettings}
                 onSave={handleSavePdfSettings}
             />
-        </div >
+
+            <CloudRoutineBackupModal 
+                isOpen={isCloudModalOpen} 
+                onClose={() => setIsCloudModalOpen(false)} 
+                routineData={routine}
+                onRestore={async (data) => {
+                    const loadingToast = toast.loading('Restoring cloud backup...');
+                    try {
+                        await importRoutine(data);
+                        toast.success('Backup restored successfully!', { id: loadingToast });
+                        fetchData();
+                        setIsCloudModalOpen(false);
+                    } catch (error) {
+                        console.error("Import failed:", error);
+                        toast.error(error?.response?.data?.message || 'Failed to restore cloud backup.', { id: loadingToast });
+                    }
+                }}
+            />
+        </div>
     );
 };
 

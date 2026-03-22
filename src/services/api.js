@@ -49,7 +49,9 @@ export const exportSystemBackup = () => api.get('/backup/export', { responseType
 export const importSystemBackup = (data) => api.post('/backup/import', data);
 
 // Cloud Backup APIs
-export const getCloudBackups = () => api.get('/backup/cloud');
+export const getCloudBackups = (type = '') => api.get(`/backup/cloud${type ? `?type=${type}` : ''}`);
+export const saveCloudBackup = (filename, data) => api.post('/backup/cloud/save', { filename, data });
+export const getCloudBackupData = (filename) => api.get(`/backup/cloud/data?filename=${filename}`);
 export const createCloudBackup = () => api.post('/backup/cloud');
 export const restoreCloudBackup = (filename) => api.post('/backup/cloud/restore', { filename });
 export const deleteCloudBackup = (filename) => api.delete(`/backup/cloud/${filename}`);
