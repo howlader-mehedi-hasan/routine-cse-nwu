@@ -1,1 +1,5 @@
 horaizental scrol bar is not showing in week view for week schedule routine table
+
+horaizental scrolbar is working fine in desktop beowsing mide but the scrol bar is not visible by default
+so it is quite hard me to use this
+i want that when i hovor with the mouse pointer to the routine table in week view and routine view the horaizontal scroll bar will apaier

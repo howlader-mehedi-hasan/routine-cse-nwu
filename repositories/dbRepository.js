@@ -168,7 +168,7 @@ class DBRepository {
         const { error } = await this.supabase
             .from(collectionName)
             .delete()
-            .neq('id', 0); // Condition to delete all records
+            .not('id', 'is', null); // Condition to delete all records safely
         
         if (error) {
             console.error(`Error clearing ${collectionName}:`, error);

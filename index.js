@@ -20,7 +20,8 @@ const PORT = process.env.PORT || 5001;
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
