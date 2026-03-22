@@ -823,18 +823,36 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const downloadPDF = () => {
         let title = "Class Routine";
         let subtitle = "";
+        let entityName = "";
         
         if (viewMode === 'master') {
             subtitle = `Master Routine - ${selectedDay}`;
+            entityName = selectedDay;
         }
         if (viewMode === 'section') {
             const b = metadata.batches.find(b => String(b.id) === String(selectedBatchId));
             subtitle = `Section Routine - ${b ? b.name + ' (' + b.section + ')' : ''}`;
+            entityName = b ? `${b.name} (${b.section})` : "Batch";
         }
         if (viewMode === 'faculty') {
             const f = metadata.faculty.find(f => String(f.id) === String(selectedFacultyId));
             subtitle = `Faculty Routine - ${f ? f.name : ''}`;
+            entityName = f ? f.name : "Faculty";
         }
+
+        const now = new Date();
+        const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
+        const dynamicFileName = `${entityName}_${timestamp}`;
+
+        const finalSettings = {
+            ...pdfSettings,
+            fileName: dynamicFileName,
+            additionalText: dynamicFileName,
+            // Clear unwanted sections for Routine View
+            ccText: "",
+            bottomSignatures: [],
+            signatureImage: null
+        };
 
         const tableColumn = [viewMode === 'master' ? "Batch" : "Day", ...currentTheorySlots];
         const tableRows = [];
@@ -902,7 +920,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             });
         }
 
-        generateRoutineViewPDF(title, subtitle, tableColumn, tableRows, pdfSettings);
+        generateRoutineViewPDF(title, subtitle, tableColumn, tableRows, finalSettings);
     };
 
     // Determine active time slots based on selected course
@@ -1495,6 +1513,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 onClose={() => setIsPdfModalOpen(false)}
                 initialSettings={pdfSettings}
                 onSave={handleSavePdfSettings}
+                isRoutineView={true}
             />
 
         </div>

@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
 import GenericCloudBackup from './GenericCloudBackup';
 
-const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
+const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave, isRoutineView = false }) => {
     const defaultSettings = {
         fileName: "week_routine",
         universityName: "North Western University",
@@ -196,23 +196,25 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
                         </h4>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5 line-clamp-1">File Name</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        name="fileName"
-                                        value={settings.fileName}
-                                        onChange={handleChange}
-                                        placeholder="e.g. week_routine"
-                                        className="w-full p-2.5 pr-12 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-muted-foreground/50"
-                                    />
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                                        .pdf
-                                    </span>
+                            {!isRoutineView && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5 line-clamp-1">File Name</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name="fileName"
+                                            value={settings.fileName}
+                                            onChange={handleChange}
+                                            placeholder="e.g. week_routine"
+                                            className="w-full p-2.5 pr-12 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-muted-foreground/50"
+                                        />
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                                            .pdf
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
+                            )}
+                            <div className={isRoutineView ? "md:col-span-2" : ""}>
                                 <label className="block text-sm font-medium mb-1.5 line-clamp-1">University / Organization Name</label>
                                 <input
                                     type="text"
@@ -250,55 +252,61 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
                             </div>
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium mb-1.5">Additional Top-Right Text</label>
-                            <input
-                                type="text"
-                                name="additionalText"
-                                value={settings.additionalText}
-                                onChange={handleChange}
-                                placeholder="e.g. Version 2.0 (Optional)"
-                                className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            />
-                        </div>
-                    </div>
-
-                    <hr className="border-border" />
-
-                    {/* Faculty Table Layout Customization */}
-                    <div className="space-y-4">
-                        <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
-                            <Layout className="h-4 w-4" /> Faculty Table Layout
-                        </h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">Permanent Faculty Columns</label>
+                        {!isRoutineView && (
+                            <div className="mt-4">
+                                <label className="block text-sm font-medium mb-1.5">Additional Top-Right Text</label>
                                 <input
-                                    type="number"
-                                    name="permanentFacultyCols"
-                                    value={settings.permanentFacultyCols}
+                                    type="text"
+                                    name="additionalText"
+                                    value={settings.additionalText}
                                     onChange={handleChange}
-                                    min="1"
-                                    max="6"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                                <p className="text-xs text-muted-foreground mt-1">Number of 3-item column triplets (Name, Form, Phone)</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">Guest Faculty Columns</label>
-                                <input
-                                    type="number"
-                                    name="guestFacultyCols"
-                                    value={settings.guestFacultyCols}
-                                    onChange={handleChange}
-                                    min="1"
-                                    max="8"
+                                    placeholder="e.g. Version 2.0 (Optional)"
                                     className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 />
                             </div>
-                        </div>
+                        )}
                     </div>
+
+                    {!isRoutineView && (
+                        <>
+                            <hr className="border-border" />
+
+                            {/* Faculty Table Layout Customization */}
+                            <div className="space-y-4">
+                                <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
+                                    <Layout className="h-4 w-4" /> Faculty Table Layout
+                                </h4>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Permanent Faculty Columns</label>
+                                        <input
+                                            type="number"
+                                            name="permanentFacultyCols"
+                                            value={settings.permanentFacultyCols}
+                                            onChange={handleChange}
+                                            min="1"
+                                            max="6"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                        <p className="text-xs text-muted-foreground mt-1">Number of 3-item column triplets (Name, Form, Phone)</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Guest Faculty Columns</label>
+                                        <input
+                                            type="number"
+                                            name="guestFacultyCols"
+                                            value={settings.guestFacultyCols}
+                                            onChange={handleChange}
+                                            min="1"
+                                            max="8"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     <hr className="border-border" />
 
@@ -359,147 +367,157 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave }) => {
                                     className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                                 />
                             </div>
-                            <div className="col-span-2 md:col-span-1">
-                                <label className="block text-sm font-medium mb-1.5 line-clamp-1">Faculty Size</label>
-                                <input
-                                    type="number"
-                                    name="facultyFontSize"
-                                    value={settings.facultyFontSize}
-                                    onChange={handleChange}
-                                    min="4"
-                                    max="14"
-                                    step="0.5"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                            </div>
+                            {!isRoutineView && (
+                                <div className="col-span-2 md:col-span-1">
+                                    <label className="block text-sm font-medium mb-1.5 line-clamp-1">Faculty Size</label>
+                                    <input
+                                        type="number"
+                                        name="facultyFontSize"
+                                        value={settings.facultyFontSize}
+                                        onChange={handleChange}
+                                        min="4"
+                                        max="14"
+                                        step="0.5"
+                                        className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <hr className="border-border" />
+                    {!isRoutineView && (
+                        <>
+                            <hr className="border-border" />
 
-                    {/* C.C. Block Customization */}
-                    <div className="space-y-4">
-                        <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
-                            <FileText className="h-4 w-4" /> C.C. List Section
-                        </h4>
-                        <p className="text-xs text-muted-foreground">Appears at the bottom left. Leave blank to hide.</p>
+                            {/* C.C. Block Customization */}
+                            <div className="space-y-4">
+                                <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
+                                    <FileText className="h-4 w-4" /> C.C. List Section
+                                </h4>
+                                <p className="text-xs text-muted-foreground">Appears at the bottom left. Leave blank to hide.</p>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5 line-clamp-1">Title</label>
-                            <input
-                                type="text"
-                                name="ccTitle"
-                                value={settings.ccTitle}
-                                onChange={handleChange}
-                                placeholder="e.g. C.C"
-                                className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                            />
-                        </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5 line-clamp-1">Title</label>
+                                    <input
+                                        type="text"
+                                        name="ccTitle"
+                                        value={settings.ccTitle}
+                                        onChange={handleChange}
+                                        placeholder="e.g. C.C"
+                                        className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                    />
+                                </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5">List Items (Newline Separated)</label>
-                            <textarea
-                                name="ccText"
-                                value={settings.ccText}
-                                onChange={handleChange}
-                                rows={4}
-                                placeholder="1. Dean\n2. Registrar\n3. All CRs\n4. University Website"
-                                className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-y"
-                            />
-                        </div>
-                    </div>
-
-                    <hr className="border-border" />
-
-                    {/* Head of Department Signature Customization */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
-                                <FileText className="h-4 w-4" /> Head of Department Signature
-                            </h4>
-                            <div className="flex items-center gap-2">
-                                <label className="text-xs text-muted-foreground">Font Size:</label>
-                                <input
-                                    type="number"
-                                    name="signatureFontSize"
-                                    value={settings.signatureFontSize}
-                                    onChange={handleChange}
-                                    min="6"
-                                    max="24"
-                                    step="0.5"
-                                    className="w-16 p-1 text-xs rounded border border-input bg-background focus:ring-1 focus:ring-indigo-500 outline-none"
-                                />
+                                <div>
+                                    <label className="block text-sm font-medium mb-1.5">List Items (Newline Separated)</label>
+                                    <textarea
+                                        name="ccText"
+                                        value={settings.ccText}
+                                        onChange={handleChange}
+                                        rows={4}
+                                        placeholder="1. Dean\n2. Registrar\n3. All CRs\n4. University Website"
+                                        className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-y"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        </>
+                    )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">Head Name</label>
-                                <input
-                                    type="text"
-                                    name="headName"
-                                    value={settings.headName}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Md. Mahedi Hasan"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">Designation</label>
-                                <input
-                                    type="text"
-                                    name="headDesignation"
-                                    value={settings.headDesignation}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Assistant Professor & Head"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
+                    {!isRoutineView && (
+                        <>
+                            <hr className="border-border" />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">Department Name (Signature Block)</label>
-                                <input
-                                    type="text"
-                                    name="headDepartmentName"
-                                    value={settings.headDepartmentName}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Dept. of CSE"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1.5">University Name (Signature Block)</label>
-                                <input
-                                    type="text"
-                                    name="headUniversityName"
-                                    value={settings.headUniversityName}
-                                    onChange={handleChange}
-                                    placeholder="e.g. North Western University"
-                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium mb-1.5">Signature Image Upload (Captures Black Ink)</label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    className="block w-full text-sm text-foreground file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all border border-input rounded-lg bg-background"
-                                />
-                                {settings.signatureImage && (
-                                    <div className="h-10 w-24 bg-white border border-border rounded flex items-center justify-center overflow-hidden shrink-0">
-                                        <img src={settings.signatureImage} alt="Signature Preview" className="max-h-full max-w-full object-contain" />
+                            {/* Head of Department Signature Customization */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
+                                        <FileText className="h-4 w-4" /> Head of Department Signature
+                                    </h4>
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-xs text-muted-foreground">Font Size:</label>
+                                        <input
+                                            type="number"
+                                            name="signatureFontSize"
+                                            value={settings.signatureFontSize}
+                                            onChange={handleChange}
+                                            min="6"
+                                            max="24"
+                                            step="0.5"
+                                            className="w-16 p-1 text-xs rounded border border-input bg-background focus:ring-1 focus:ring-indigo-500 outline-none"
+                                        />
                                     </div>
-                                )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Head Name</label>
+                                        <input
+                                            type="text"
+                                            name="headName"
+                                            value={settings.headName}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Md. Mahedi Hasan"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Designation</label>
+                                        <input
+                                            type="text"
+                                            name="headDesignation"
+                                            value={settings.headDesignation}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Assistant Professor & Head"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">Department Name (Signature Block)</label>
+                                        <input
+                                            type="text"
+                                            name="headDepartmentName"
+                                            value={settings.headDepartmentName}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Dept. of CSE"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1.5">University Name (Signature Block)</label>
+                                        <input
+                                            type="text"
+                                            name="headUniversityName"
+                                            value={settings.headUniversityName}
+                                            onChange={handleChange}
+                                            placeholder="e.g. North Western University"
+                                            className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="mt-4">
+                                    <label className="block text-sm font-medium mb-1.5">Signature Image Upload (Captures Black Ink)</label>
+                                    <div className="flex items-center gap-4">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="block w-full text-sm text-foreground file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all border border-input rounded-lg bg-background"
+                                        />
+                                        {settings.signatureImage && (
+                                            <div className="h-10 w-24 bg-white border border-border rounded flex items-center justify-center overflow-hidden shrink-0">
+                                                <img src={settings.signatureImage} alt="Signature Preview" className="max-h-full max-w-full object-contain" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-2">Upload a picture of the signature. The system will automatically remove the white background.</p>
+                                </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-2">Upload a picture of the signature. The system will automatically remove the white background.</p>
-                        </div>
-                    </div>
+                        </>
+                    )}
 
                     <hr className="border-border" />
 

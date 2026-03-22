@@ -615,7 +615,23 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
         const today = new Date();
         const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
         doc.setFontSize(10);
-        doc.text(`Generated on: ${formattedDate}`, 14, 18);
+        
+        // --- Top Left Box: Updated Date ---
+        const dateText = `Generated on: ${formattedDate}`;
+        const dateTextWidth = doc.getTextWidth(dateText);
+        const leftBoxX = 14;
+        const topBoxY = 12;
+        const boxHeight = 8;
+        doc.rect(leftBoxX, topBoxY, dateTextWidth + 6, boxHeight);
+        doc.text(dateText, leftBoxX + 3, topBoxY + 5.5);
+
+        // --- Top Right Box: Additional Text (Automatic Info) ---
+        if (pdfSettings.additionalText) {
+            const rightTextWidth = doc.getTextWidth(pdfSettings.additionalText);
+            const rightBoxX = pageWidth - 14 - (rightTextWidth + 6);
+            doc.rect(rightBoxX, topBoxY, rightTextWidth + 6, boxHeight);
+            doc.text(pdfSettings.additionalText, rightBoxX + 3, topBoxY + 5.5);
+        }
 
         autoTable(doc, {
             head: [tableColumn],
