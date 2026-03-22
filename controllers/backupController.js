@@ -239,3 +239,25 @@ export const deleteCloudBackup = async (req, res) => {
         res.status(500).json({ message: 'Failed to delete cloud backup', error: error.message });
     }
 };
+
+export const renameCloudBackup = async (req, res) => {
+    try {
+        const { oldFilename, newFilename } = req.body;
+        if (!oldFilename || !newFilename) {
+            return res.status(400).json({ message: 'Both old and new filenames are required' });
+        }
+
+        // Basic safety: ensure both names have .json extension
+        if (!oldFilename.endsWith('.json') || !newFilename.endsWith('.json')) {
+            return res.status(400).json({ message: 'Invalid filename format. Must be .json files.' });
+        }
+
+        await dbRepository.renameInCloud(oldFilename, newFilename);
+        await logActivity(req.user.id, req.user.fullName || req.user.username, 'Rename Cloud Backup', `Renamed cloud backup from ${oldFilename} to ${newFilename}`);
+        
+        res.status(200).json({ message: 'Cloud backup renamed successfully', newFilename });
+    } catch (error) {
+        console.error("Error renaming cloud backup:", error.message);
+        res.status(500).json({ message: 'Failed to rename cloud backup', error: error.message });
+    }
+};

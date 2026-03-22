@@ -1,5 +1,5 @@
 import express from 'express';
-import { exportSystemBackup, importSystemBackup, createCloudBackup, getCloudBackups, restoreCloudBackup, deleteCloudBackup, saveCloudBackup, getCloudBackupData } from '../controllers/backupController.js';
+import { exportSystemBackup, importSystemBackup, createCloudBackup, getCloudBackups, restoreCloudBackup, deleteCloudBackup, saveCloudBackup, getCloudBackupData, renameCloudBackup } from '../controllers/backupController.js';
 import { protect, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -15,6 +15,7 @@ router.post('/cloud/save', protect, requirePermission('manage_database'), saveCl
 router.get('/cloud/data', protect, requirePermission('manage_database'), getCloudBackupData);
 router.post('/cloud', protect, requirePermission('manage_database'), createCloudBackup);
 router.post('/cloud/restore', protect, requirePermission('manage_database'), restoreCloudBackup);
+router.patch('/cloud/rename', protect, requirePermission('manage_database'), renameCloudBackup);
 router.delete('/cloud/:filename', protect, requirePermission('manage_database'), deleteCloudBackup);
 
 export default router;

@@ -54,6 +54,7 @@ export const saveCloudBackup = (filename, data) => api.post('/backup/cloud/save'
 export const getCloudBackupData = (filename) => api.get(`/backup/cloud/data?filename=${filename}`);
 export const createCloudBackup = () => api.post('/backup/cloud');
 export const restoreCloudBackup = (filename) => api.post('/backup/cloud/restore', { filename });
+export const renameCloudBackup = (oldFilename, newFilename) => api.patch('/backup/cloud/rename', { oldFilename, newFilename });
 export const deleteCloudBackup = (filename) => api.delete(`/backup/cloud/${filename}`);
 
 export const getSettings = () => api.get('/settings');

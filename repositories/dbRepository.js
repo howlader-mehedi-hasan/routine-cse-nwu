@@ -246,6 +246,18 @@ class DBRepository {
         }
         return true;
     }
+
+    async renameInCloud(oldPath, newPath) {
+        const { data, error } = await this.supabase.storage
+            .from('backups')
+            .move(oldPath, newPath);
+        
+        if (error) {
+            console.error('Error renaming backup in cloud:', error);
+            throw error;
+        }
+        return data;
+    }
 }
 
 const dbRepositoryInstance = new DBRepository();

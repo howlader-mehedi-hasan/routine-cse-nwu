@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Cloud, FileText, Download, Trash2, RefreshCw, Plus } from 'lucide-react';
+import { Cloud, FileText, Download, Trash2, RefreshCw, Plus, Edit2, Check, X } from 'lucide-react';
 import { Button } from './ui/Button';
 import toast from 'react-hot-toast';
-import { getCloudBackups, saveCloudBackup, getCloudBackupData, deleteCloudBackup } from '../services/api';
+import { getCloudBackups, saveCloudBackup, getCloudBackupData, deleteCloudBackup, renameCloudBackup } from '../services/api';
 import { cn } from '../lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -26,6 +26,8 @@ const GenericCloudBackup = ({
     const [cloudFiles, setCloudFiles] = useState([]);
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
+    const [editingFile, setEditingFile] = useState(null);
+    const [newName, setNewName] = useState('');
 
     useEffect(() => {
         fetchCloudBackups();
@@ -108,6 +110,45 @@ const GenericCloudBackup = ({
         }
     };
 
+    const handleRenameStart = (file) => {
+        setEditingFile(file.name);
+        setNewName(file.name.replace('.json', ''));
+    };
+
+    const handleRenameCancel = () => {
+        setEditingFile(null);
+        setNewName('');
+    };
+
+    const handleRenameSubmit = async (oldFilename) => {
+        if (!newName || newName.trim() === '') {
+            toast.error("Name cannot be empty");
+            return;
+        }
+
+        const fullNewName = newName.endsWith('.json') ? newName : `${newName.trim()}.json`;
+        
+        if (fullNewName === oldFilename) {
+            setEditingFile(null);
+            return;
+        }
+
+        let loadingToast;
+        try {
+            setActionLoading(true);
+            loadingToast = toast.loading("Renaming backup...");
+            await renameCloudBackup(oldFilename, fullNewName);
+            toast.success("Backup renamed successfully!", { id: loadingToast });
+            setEditingFile(null);
+            fetchCloudBackups();
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to rename backup", { id: loadingToast });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const isBusy = loading || actionLoading || isExternalLoading;
 
     return (
@@ -152,42 +193,85 @@ const GenericCloudBackup = ({
                     <div className="divide-y divide-border h-64 overflow-y-auto">
                         {cloudFiles.map((file) => (
                             <div key={file.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-muted/30 transition-colors group">
-                                <div className="flex items-start gap-3">
-                                    <div className="mt-1 p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md">
+                                <div className="flex items-start gap-3 flex-1">
+                                    <div className="mt-1 p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-md shrink-0">
                                         <FileText className="h-5 w-5" />
                                     </div>
-                                    <div>
-                                        <h5 className="font-medium text-sm text-foreground break-all">{file.name}</h5>
-                                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                                            <span>{formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}</span>
-                                            <span>&bull;</span>
-                                            <span>{formatBytes(file.metadata?.size)}</span>
-                                        </div>
+                                    <div className="flex-1 min-w-0">
+                                        {editingFile === file.name ? (
+                                            <div className="flex items-center gap-2 max-w-md">
+                                                <input 
+                                                    type="text"
+                                                    value={newName}
+                                                    onChange={(e) => setNewName(e.target.value)}
+                                                    className="flex-1 h-8 bg-background border border-indigo-500 rounded px-2 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleRenameSubmit(file.name);
+                                                        if (e.key === 'Escape') handleRenameCancel();
+                                                    }}
+                                                />
+                                                <button 
+                                                    onClick={() => handleRenameSubmit(file.name)}
+                                                    className="p-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                                                    title="Save"
+                                                >
+                                                    <Check className="h-4 w-4" />
+                                                </button>
+                                                <button 
+                                                    onClick={handleRenameCancel}
+                                                    className="p-1.5 bg-muted text-muted-foreground rounded hover:bg-muted-foreground/20 transition-colors"
+                                                    title="Cancel"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex items-center gap-2">
+                                                    <h5 className="font-medium text-sm text-foreground truncate">{file.name}</h5>
+                                                    <button 
+                                                        onClick={() => handleRenameStart(file)}
+                                                        className="p-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-indigo-600 transition-all"
+                                                        title="Rename"
+                                                    >
+                                                        <Edit2 className="h-3.5 w-3.5" />
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                                                    <span>{formatDistanceToNow(new Date(file.created_at), { addSuffix: true })}</span>
+                                                    <span>&bull;</span>
+                                                    <span>{formatBytes(file.metadata?.size)}</span>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                                 
-                                <div className="flex items-center gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity self-end sm:self-auto">
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
-                                        className="h-8"
-                                        onClick={() => handleRestore(file.name)}
-                                        disabled={isBusy}
-                                    >
-                                        <Download className="h-3.5 w-3.5 mr-1.5" />
-                                        Restore
-                                    </Button>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                        onClick={() => handleDelete(file.name)}
-                                        disabled={isBusy}
-                                        title="Delete backup"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                                {editingFile !== file.name && (
+                                    <div className="flex items-center gap-2 sm:opacity-0 group-hover:opacity-100 transition-opacity self-end sm:self-auto shrink-0">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="h-8"
+                                            onClick={() => handleRestore(file.name)}
+                                            disabled={isBusy}
+                                        >
+                                            <Download className="h-3.5 w-3.5 mr-1.5" />
+                                            Restore
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                            onClick={() => handleDelete(file.name)}
+                                            disabled={isBusy}
+                                            title="Delete backup"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
