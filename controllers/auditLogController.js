@@ -71,10 +71,8 @@ export const deleteMultipleAuditLogs = async (req, res) => {
             return res.status(400).json({ message: 'No IDs provided for deletion' });
         }
         
-        // Delete each log entry
-        for (const id of ids) {
-            await dbRepository.delete('audit_logs', id);
-        }
+        // Delete log entries in bulk
+        await dbRepository.bulkDelete('audit_logs', ids);
         
         // Log the bulk deletion activity
         await logActivity(

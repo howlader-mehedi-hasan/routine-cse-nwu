@@ -64,5 +64,7 @@ export const updateSettings = (data, key = '') => {
 };
 
 export const getAuditLogs = () => api.get('/audit-logs');
+export const updateAuditLog = (id, data) => api.put(`/audit-logs/${id}`, data);
+export const deleteMultipleAuditLogs = (ids) => api.post('/audit-logs/delete-multiple', { ids });
 
 export default api;

@@ -199,6 +199,19 @@ class DBRepository {
         return data;
     }
 
+    async bulkDelete(collectionName, ids) {
+        const { error } = await this.supabase
+            .from(collectionName)
+            .delete()
+            .in('id', ids);
+        
+        if (error) {
+            console.error(`Error bulk deleting from ${collectionName}:`, error);
+            return false;
+        }
+        return true;
+    }
+
     // --- Cloud Storage (Backups) ---
     async uploadToCloud(filename, fileData) {
         const { data, error } = await this.supabase.storage

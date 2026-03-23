@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getAuditLogs } from '../services/api';
+import { getAuditLogs, updateAuditLog, deleteMultipleAuditLogs } from '../services/api';
 import { History, Search, Filter, Calendar, User, Activity, Edit2, X, Check, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { Button } from './ui/Button';
-import axios from 'axios';
 
 const ActivityLogs = () => {
     const [logs, setLogs] = useState([]);
@@ -59,10 +58,7 @@ const ActivityLogs = () => {
     const handleUpdateLog = async (e) => {
         e.preventDefault();
         try {
-            const baseURL = import.meta.env.VITE_API_URL || '/api';
-            await axios.put(`${baseURL}/audit/${editingLog.id}`, editForm, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await updateAuditLog(editingLog.id, editForm);
             toast.success("Log entry updated successfully");
             setIsEditModalOpen(false);
             fetchLogs();
@@ -90,10 +86,7 @@ const ActivityLogs = () => {
         if (!window.confirm(`Are you sure you want to delete ${selectedLogs.length} selected logs?`)) return;
 
         try {
-            const baseURL = import.meta.env.VITE_API_URL || '/api';
-            await axios.post(`${baseURL}/audit/delete-multiple`, { ids: selectedLogs }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await deleteMultipleAuditLogs(selectedLogs);
             toast.success("Selected logs deleted successfully");
             setSelectedLogs([]);
             fetchLogs();
