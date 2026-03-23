@@ -760,7 +760,13 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                 // Use the first entry to determine colspan (assuming aligned slots)
                                                 const firstEntry = currentData[0];
                                                 if (firstEntry.isLab && currentDayLabSlots.includes(firstEntry.originalTime)) {
-                                                    colSpan = 2;
+                                                    const labEndTimeStr = firstEntry.originalTime.split('-')[1].trim();
+                                                    const endSlotIndex = currentTheorySlots.findIndex(s => s.endsWith(labEndTimeStr));
+                                                    if (endSlotIndex !== -1 && endSlotIndex >= i) {
+                                                        colSpan = (endSlotIndex - i) + 1;
+                                                    } else {
+                                                        colSpan = 2; // Fallback
+                                                    }
                                                 }
                                             }
 
@@ -770,7 +776,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                             }
 
                                             // Prepare display data directly
-                                            const displayCourses = currentData.map(d => d.course).join(' / ');
+                                            const displayCourses = currentData.map(d => d.isLab ? `${d.course} (LAB)` : d.course).join(' / ');
                                             const displayFaculty = currentData.map(d => d.faculty).join(' / ');
                                             const displayRoom = currentData.map(d => d.room).join(' / ');
                                             const isLab = currentData.some(d => d.isLab);

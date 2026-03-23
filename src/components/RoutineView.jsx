@@ -876,10 +876,22 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                         const isLab = data.some(d => d.isLab && labSlots.includes(d.originalTime));
                         
                         const cellContent = data.map(d => {
-                            return `${d.course}\n${d.faculty}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            const courseText = d.isLab ? `${d.course} (LAB)` : d.course;
+                            return `${courseText}\n${d.faculty}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
                         }).join('\n-alt-\n');
 
-                        let colSpan = isLab ? 2 : 1;
+                        let colSpan = 1;
+                        if (isLab) {
+                            // Find how many slots this lab actually spans in the visible header
+                            const labEndTimeStr = data[0].originalTime.split('-')[1].trim();
+                            // Find index of slot that matches the lab end time
+                            const endSlotIndex = currentTheorySlots.findIndex(s => s.endsWith(labEndTimeStr));
+                            if (endSlotIndex !== -1 && endSlotIndex >= i) {
+                                colSpan = (endSlotIndex - i) + 1;
+                            } else {
+                                colSpan = 2; // Fallback
+                            }
+                        }
                         if (i + colSpan > currentTheorySlots.length) {
                             colSpan = currentTheorySlots.length - i;
                         }
@@ -913,7 +925,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             const facultyOrBatch = viewMode === 'faculty' 
                                 ? (metadata.batches.find(b => String(b.id) === String(d.batchId))?.name + (metadata.batches.find(b => String(b.id) === String(d.batchId))?.section ? ' ' + metadata.batches.find(b => String(b.id) === String(d.batchId))?.section : '')) 
                                 : d.faculty;
-                            return `${d.course}\n${facultyOrBatch}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            const courseText = d.isLab ? `${d.course} (LAB)` : d.course;
+                            return `${courseText}\n${facultyOrBatch}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
                         }).join('\n-alt-\n');
 
                         let colSpan = isLab ? 2 : 1;

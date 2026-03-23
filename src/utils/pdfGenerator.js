@@ -119,8 +119,9 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                         const rawText = data.cell.text.join(' ');
                         if (rawText.trim() === '') return;
 
+                        const isLabTextMatched = rawText.includes('LAB');
                         const hasAlt = rawText.includes('ALT');
-                        const cleanText = rawText.replace(/LAB/g, ' ').replace(/ALT/g, ' ').trim();
+                        const cleanText = rawText.replace(/LAB/g, ' ').replace(/ALT/g, ' ').replace(/[()]/g, ' ').trim();
 
                         const allRooms = [];
                         const roomStartMatch = cleanText.match(/R-([\w\d]+(?:\s*\/\s*[\w\d]+)*)/)
@@ -162,12 +163,14 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                             newLines.push('-alt-');
                             newLines.push(code2);
                             newLines.push(fac2 + (room2 ? '_' + room2 : ''));
+                            if (isLabTextMatched) newLines.push('(LAB)');
                         } else if (allCourses.length === 1) {
                             // Single class format
                             newLines.push(allCourses[0].prefix + '-');
                             newLines.push(allCourses[0].num);
                             if (facWords[0]) newLines.push('-' + facWords[0]);
                             if (allRooms[0]) newLines.push('_' + allRooms[0]);
+                            if (isLabTextMatched) newLines.push('(LAB)');
                             if (hasAlt) newLines.push('-alt-');
                         } else if (cleanText.trim()) {
                             // Fallback
@@ -191,8 +194,8 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                     if (isTimeRow && data.cell.text && data.cell.text.length > 0) {
                         const cellText = data.cell.text[0];
                         if (cellText && cellText.includes('-')) {
-                            const [start, end] = cellText.split('-');
-                            data.cell.text = [start.trim(), end.trim()];
+                            const [start, end] = cellText.split('-').map(s => s.trim());
+                            data.cell.text = [start, end];
                         }
                     }
                 }
@@ -654,7 +657,17 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
                 fontStyle: 'bold',
                 fontSize: (pdfSettings.fontSize || 10) + 1
             },
-            columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 40 } }
+            columnStyles: { 0: { halign: 'left', fontStyle: 'bold', cellWidth: 40 } },
+            didParseCell: function (data) {
+                // Split time headers into two lines
+                if (data.section === 'head' && data.row.index === 0 && data.column.index > 0) {
+                    const cellText = data.cell.text[0];
+                    if (cellText && cellText.includes('-')) {
+                        const [start, end] = cellText.split('-').map(s => s.trim());
+                        data.cell.text = [start, end];
+                    }
+                }
+            }
         });
 
         // Add Bottom Signatures/Texts (Custom Fields)
