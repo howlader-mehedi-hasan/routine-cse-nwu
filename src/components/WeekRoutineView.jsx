@@ -84,13 +84,14 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
     const fetchData = async () => {
         try {
-            const [routineRes, roomsRes, facultyRes, batchesRes, coursesRes, settingsRes] = await Promise.all([
+            const [routineRes, roomsRes, facultyRes, batchesRes, coursesRes, settingsRes, pdfSettingsRes] = await Promise.all([
                 getRoutine(),
                 getRooms(),
                 getFaculty(),
                 getBatches(),
                 getCourses(),
-                getSettings()
+                getSettings('app_settings'),
+                getSettings('pdf_settings_week')
             ]);
             setRoutine(routineRes.data);
             setMetadata({
@@ -106,6 +107,9 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 if (settingsData.general?.theory_slots?.length > 0) {
                     setNewClassData(prev => ({ ...prev, time: settingsData.general.theory_slots[0] }));
                 }
+            }
+            if (pdfSettingsRes.data.success && Object.keys(pdfSettingsRes.data.data).length > 0) {
+                setPdfSettings(pdfSettingsRes.data.data);
             }
             setLoading(false);
         } catch (err) {
@@ -553,7 +557,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const handleSavePdfSettings = async (newSettings) => {
         setPdfSettings(newSettings);
         try {
-            await updateSettings({ pdf_settings_week: newSettings });
+            await updateSettings(newSettings, 'pdf_settings_week');
             toast.success("PDF settings saved globally!");
         } catch (error) {
             console.error("Failed to save PDF settings", error);
@@ -641,26 +645,24 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             </Button>
                         </>
                     )}
-                    {user && (
-                        <div className="flex bg-muted/30 p-1 rounded-md border border-border">
-                            {canEdit && (
-                                <Button variant="ghost" size="sm" onClick={() => setIsPdfModalOpen(true)} title="PDF Settings" className="text-muted-foreground hover:text-indigo-600 border-r border-border rounded-r-none pr-3">
-                                    <Settings2 className="h-4 w-4" />
-                                </Button>
-                            )}
-                            <Button 
-                                variant="default" 
-                                className={cn(
-                                    "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
-                                    canEdit ? "rounded-l-none" : ""
-                                )} 
-                                onClick={() => downloadPDF(pdfSettings)}
-                            >
-                                <Download className="mr-2 h-4 w-4" />
-                                PDF
+                    <div className="flex bg-muted/30 p-1 rounded-md border border-border">
+                        {user && canEdit && (
+                            <Button variant="ghost" size="sm" onClick={() => setIsPdfModalOpen(true)} title="PDF Settings" className="text-muted-foreground hover:text-indigo-600 border-r border-border rounded-r-none pr-3">
+                                <Settings2 className="h-4 w-4" />
                             </Button>
-                        </div>
-                    )}
+                        )}
+                        <Button 
+                            variant="default" 
+                            className={cn(
+                                "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
+                                user && canEdit ? "rounded-l-none" : ""
+                            )} 
+                            onClick={() => downloadPDF(pdfSettings)}
+                        >
+                            <Download className="mr-2 h-4 w-4" />
+                            PDF
+                        </Button>
+                    </div>
                 </div>
             </div>
 

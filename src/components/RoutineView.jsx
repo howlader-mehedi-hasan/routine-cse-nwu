@@ -123,7 +123,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const handleSavePdfSettings = async (newSettings) => {
         setPdfSettings(newSettings);
         try {
-            await updateSettings({ pdf_settings_routine: newSettings });
+            await updateSettings(newSettings, 'pdf_settings_routine');
             toast.success("PDF settings saved globally!");
         } catch (error) {
             console.error("Failed to save PDF settings", error);
@@ -238,13 +238,14 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
     const fetchData = async () => {
         try {
-            const [routineRes, roomsRes, facultyRes, batchesRes, coursesRes, settingsRes] = await Promise.all([
+            const [routineRes, roomsRes, facultyRes, batchesRes, coursesRes, settingsRes, pdfSettingsRes] = await Promise.all([
                 getRoutine(),
                 getRooms(),
                 getFaculty(),
                 getBatches(),
                 getCourses(),
-                getSettings()
+                getSettings('app_settings'),
+                getSettings('pdf_settings_routine')
             ]);
             setRoutine(routineRes.data);
             setMetadata({
@@ -260,6 +261,9 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 if (settingsData.general?.theory_slots?.length > 0) {
                     setFormData(prev => ({ ...prev, time: settingsData.general.theory_slots[0] }));
                 }
+            }
+            if (pdfSettingsRes.data.success && Object.keys(pdfSettingsRes.data.data).length > 0) {
+                setPdfSettings(pdfSettingsRes.data.data);
             }
             setLoading(false);
         } catch (err) {
@@ -851,7 +855,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             // Clear unwanted sections for Routine View
             ccText: "",
             bottomSignatures: [],
-            signatureImage: null
+            signatureImage: null,
+            excludeSignatures: true
         };
 
         const tableColumn = [viewMode === 'master' ? "Batch" : "Day", ...currentTheorySlots];
@@ -859,7 +864,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
         if (viewMode === 'master') {
             // Rows are Batches
-            let visibleBatches = metadata.batches;
+            let visibleBatches = sortedBatches;
 
             visibleBatches.forEach(batch => {
                 const row = [batch.name + (batch.section ? `\n(Sec ${batch.section})` : '')];
@@ -874,9 +879,14 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             return `${d.course}\n${d.faculty}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
                         }).join('\n-alt-\n');
 
-                        if (isLab) {
-                            row.push({ content: cellContent, colSpan: 2 });
-                            i++;
+                        let colSpan = isLab ? 2 : 1;
+                        if (i + colSpan > currentTheorySlots.length) {
+                            colSpan = currentTheorySlots.length - i;
+                        }
+
+                        if (colSpan > 1) {
+                            row.push({ content: cellContent, colSpan: colSpan });
+                            i += (colSpan - 1);
                         } else {
                             row.push(cellContent);
                         }
@@ -896,7 +906,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     const slot = currentTheorySlots[i];
                     const data = getWeeklyCellData(day, slot);
                     if (data && data.length > 0) {
-                        const isLab = data.some(d => d.isLab && labSlots.includes(d.originalTime));
+                        const dayConfig = getConfigForDay(day);
+                        const isLab = data.some(d => d.isLab && dayConfig.lab_slots.includes(d.originalTime));
 
                         const cellContent = data.map(d => {
                             const facultyOrBatch = viewMode === 'faculty' 
@@ -905,9 +916,14 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             return `${d.course}\n${facultyOrBatch}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
                         }).join('\n-alt-\n');
 
-                        if (isLab) {
-                            row.push({ content: cellContent, colSpan: 2 });
-                            i++;
+                        let colSpan = isLab ? 2 : 1;
+                        if (i + colSpan > currentTheorySlots.length) {
+                            colSpan = currentTheorySlots.length - i;
+                        }
+
+                        if (colSpan > 1) {
+                            row.push({ content: cellContent, colSpan: colSpan });
+                            i += (colSpan - 1);
                         } else {
                             row.push(cellContent);
                         }
@@ -967,26 +983,24 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 </Button>
                             </>
                         )}
-                        {user && (
-                            <div className="flex bg-muted/30 p-1 rounded-md border border-border">
-                                {canEdit && (
-                                    <Button variant="ghost" size="sm" onClick={() => setIsPdfModalOpen(true)} title="PDF Settings" className="text-muted-foreground hover:text-indigo-600 border-r border-border rounded-r-none pr-3">
-                                        <Settings className="h-4 w-4" />
-                                    </Button>
-                                )}
-                                <Button 
-                                    variant="default" 
-                                    className={cn(
-                                        "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
-                                        canEdit ? "rounded-l-none" : ""
-                                    )} 
-                                    onClick={downloadPDF}
-                                >
-                                    <Download className="mr-2 h-4 w-4" />
-                                    Download PDF
+                        <div className="flex bg-muted/30 p-1 rounded-md border border-border">
+                            {user && canEdit && (
+                                <Button variant="ghost" size="sm" onClick={() => setIsPdfModalOpen(true)} title="PDF Settings" className="text-muted-foreground hover:text-indigo-600 border-r border-border rounded-r-none pr-3">
+                                    <Settings className="h-4 w-4" />
                                 </Button>
-                            </div>
-                        )}
+                            )}
+                            <Button 
+                                variant="default" 
+                                className={cn(
+                                    "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
+                                    user && canEdit ? "rounded-l-none" : ""
+                                )} 
+                                onClick={downloadPDF}
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                            </Button>
+                        </div>
                     </div>
                 </div>
 

@@ -132,33 +132,42 @@ class DBRepository {
     }
 
     // Settings (special handling)
-    async getSettings() {
+    async getSettings(key = 'app_settings') {
         const { data, error } = await this.supabase
             .from('settings')
             .select('value')
-            .eq('key', 'app_settings')
-            .single();
+            .eq('key', key)
+            .maybeSingle(); // Changed from single() to maybeSingle() to handle missing keys gracefully
         
         if (error) {
-            console.error('Error fetching settings:', error);
+            console.error(`Error fetching settings for key ${key}:`, error);
             return {};
         }
-        return data.value;
+        return data ? data.value : {};
     }
 
-    async updateSettings(updates) {
-        const currentSettings = await this.getSettings();
-        const newSettings = { ...currentSettings, ...updates };
+    async updateSettings(updates, key = 'app_settings') {
+        // If updates is an object and it's for 'app_settings', we might want to merge.
+        // But for PDF settings, we usually replace. 
+        // Let's implement a clean overwrite for now, or merge if it's app_settings.
+        
+        let newValue;
+        if (key === 'app_settings') {
+            const currentSettings = await this.getSettings(key);
+            newValue = { ...currentSettings, ...updates };
+        } else {
+            newValue = updates; // Direct overwrite for other keys (like pdf_settings)
+        }
 
         const { data, error } = await this.supabase
             .from('settings')
-            .upsert({ key: 'app_settings', value: newSettings })
+            .upsert({ key: key, value: newValue }, { onConflict: 'key' })
             .select('value')
             .single();
         
         if (error) {
-            console.error('Error updating settings:', error);
-            return currentSettings;
+            console.error(`Error updating settings for key ${key}:`, error);
+            return newValue;
         }
         return data.value;
     }

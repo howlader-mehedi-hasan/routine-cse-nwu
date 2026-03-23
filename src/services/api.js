@@ -57,8 +57,11 @@ export const restoreCloudBackup = (filename) => api.post('/backup/cloud/restore'
 export const renameCloudBackup = (oldFilename, newFilename) => api.patch('/backup/cloud/rename', { oldFilename, newFilename });
 export const deleteCloudBackup = (filename) => api.delete(`/backup/cloud/${filename}`);
 
-export const getSettings = () => api.get('/settings');
-export const updateSettings = (data) => api.put('/settings', data);
+export const getSettings = (key = '') => api.get(`/settings${key ? `?key=${key}` : ''}`);
+export const updateSettings = (data, key = '') => {
+    const payload = key ? { ...data, key } : data;
+    return api.put('/settings', payload);
+};
 
 export const getAuditLogs = () => api.get('/audit-logs');
 

@@ -17,6 +17,7 @@ import SettingsLayout from './components/layout/SettingsLayout';
 import { ThemeProvider } from './components/ui/ThemeProvider';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { getSettings, updateSettings } from './services/api';
 
 const ProtectedRoute = ({ children, allowedRoles, requiredPermission, requiredAnyPermission }) => {
   const { user, loading, hasPermission, hasAnyPermission } = useAuth();
@@ -48,12 +49,32 @@ function AppRoutes() {
     "Monday": false, "Tuesday": false, "Wednesday": false, "Thursday": false, "Friday": false, "Saturday": false
   });
 
+  // Load initial overtime settings
+  React.useEffect(() => {
+    getSettings('overtime_settings').then(res => {
+      if (res.data.success && res.data.data && Object.keys(res.data.data).length > 0) {
+        setOvertimeVisibility(res.data.data);
+      }
+    }).catch(err => console.error("Failed to fetch overtime settings:", err));
+  }, []);
+
+  // Wrapper for setOvertimeVisibility to persist changes
+  const handleToggleOvertime = (value) => {
+    setOvertimeVisibility(prev => {
+      const next = typeof value === 'function' ? value(prev) : value;
+      updateSettings(next, 'overtime_settings').catch(err => 
+        console.error("Failed to save overtime settings:", err)
+      );
+      return next;
+    });
+  };
+
   return (
     <Routes>
       <Route path="/auth" element={<DashboardLayout><AuthPage /></DashboardLayout>} />
 
-      <Route path="/" element={<DashboardLayout><RoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={setOvertimeVisibility} /></DashboardLayout>} />
-      <Route path="/week-routine" element={<DashboardLayout fullWidth={true}><WeekRoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={setOvertimeVisibility} /></DashboardLayout>} />
+      <Route path="/" element={<DashboardLayout><RoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={handleToggleOvertime} /></DashboardLayout>} />
+      <Route path="/week-routine" element={<DashboardLayout fullWidth={true}><WeekRoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={handleToggleOvertime} /></DashboardLayout>} />
       <Route path="/faculty" element={<DashboardLayout><FacultyList /></DashboardLayout>} />
 
       <Route path="/dashboard" element={

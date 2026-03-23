@@ -27,7 +27,7 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
     const fetchSettings = async () => {
         try {
             setLoading(true);
-            const res = await getSettings();
+            const res = await getSettings('app_settings');
             setSettings(res.data.data);
             setLoading(false);
         } catch (err) {
@@ -109,7 +109,7 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
     const handleSave = async () => {
         const loadingToast = toast.loading("Saving settings...");
         try {
-            await updateSettings(settings);
+            await updateSettings(settings, 'app_settings');
             toast.success("Settings saved successfully!", { id: loadingToast });
             onSettingsUpdated(settings);
             onClose();

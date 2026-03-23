@@ -3,3 +3,21 @@ horaizental scrol bar is not showing in week view for week schedule routine tabl
 horaizental scrolbar is working fine in desktop beowsing mide but the scrol bar is not visible by default
 so it is quite hard me to use this
 i want that when i hovor with the mouse pointer to the routine table in week view and routine view the horaizontal scroll bar will apaier
+
+make some changes in the pdf export setting only in routine view page(not for week view pdf export setting)
+dont need custom file name, file name will be autometically set (barch name/ faculty name/ day name _Generated date_time.pdf).
+Additional Top-Right Text not need to castomize, set this same as file name.
+dont need Faculty Table Layout.
+in Typography section dont need faculty size.
+dont need C.C. List Section.
+dont need Head of Department Signature.
+
+do this for only the pdf export setting for routine view page(not for week view pdf export setting)
+
+
+make saved pdf export setting parmanent
+there is a problem of pdf export setting, if i save a setting that will apply to download pdf, but if i refresh the page then the setting will gone, all the applied setting being cleared.
+make the settings parmanent for all, create a data table on supabase to save all the saveable setting(pdf export setting for week view, schedule setting, pdf export setting for routine view, and other saveable setting).
+
+
+also save overtime schedule of each day to database table, so that if i refresh the page the ovetime togle mood(on/off) not being changed
