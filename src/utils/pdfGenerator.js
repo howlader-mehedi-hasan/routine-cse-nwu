@@ -66,6 +66,7 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                 cellPadding: 1.5,
                 halign: 'center',
                 valign: 'middle',
+                fillColor: [255, 255, 255], // Force white background for all body cells
                 textColor: [0, 0, 0], // enforce black text if dark mode CSS leaked
                 lineWidth: 0.3, // 0.3mm for all standard borders
                 lineColor: [0, 0, 0] // Pure solid black
@@ -74,10 +75,10 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                 textColor: [0, 0, 0],
                 fontSize: pdfSettings.fontSize + 1,
                 fontStyle: 'bold',
-                fillColor: false
+                fillColor: [255, 255, 255] // Force white background for headers
             },
             columnStyles: { 0: { halign: 'center', fontStyle: 'bold', cellWidth: 18 } },
-            useCss: true, // Still parses rowspans/colspans
+            useCss: false, // Don't pull dark mode styles from DOM
             didParseCell: function (data) {
                 // Force our custom font settings instead of whatever CSS was parsed from the DOM
                 data.cell.styles.font = pdfSettings.fontStyle;
@@ -647,6 +648,7 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
                 cellPadding: 3,
                 halign: 'center',
                 valign: 'middle',
+                fillColor: [255, 255, 255],
                 textColor: [0, 0, 0],
                 lineWidth: 0.3,
                 lineColor: [0, 0, 0]
