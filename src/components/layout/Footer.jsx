@@ -7,11 +7,13 @@ import {
     Github,
     Code2
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     const quickLinks = [
+        { name: 'About Project', url: '/about', icon: <BookOpen className="w-4 h-4" />, internal: true },
         { name: 'NWU Official', url: 'https://nwu.ac.bd/', icon: <Globe className="w-4 h-4" /> },
         { name: 'Academic Portal', url: 'https://academic.nwu.ac.bd/', icon: <BookOpen className="w-4 h-4" /> },
         { name: 'Study Resource', url: 'https://study-hmh.vercel.app/', icon: <ExternalLink className="w-4 h-4" /> },
@@ -58,17 +60,29 @@ const Footer = () => {
                         <ul className="space-y-4">
                             {quickLinks.map((link) => (
                                 <li key={link.name}>
-                                    <a
-                                        href={link.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
-                                    >
-                                        <span className="p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
-                                            {link.icon}
-                                        </span>
-                                        {link.name}
-                                    </a>
+                                    {link.internal ? (
+                                        <Link
+                                            to={link.url}
+                                            className="group flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                                        >
+                                            <span className="p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                                {link.icon}
+                                            </span>
+                                            {link.name}
+                                        </Link>
+                                    ) : (
+                                        <a
+                                            href={link.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="group flex items-center gap-3 text-sm text-muted-foreground hover:text-primary transition-colors duration-200"
+                                        >
+                                            <span className="p-1.5 rounded-md bg-muted group-hover:bg-primary/10 transition-colors">
+                                                {link.icon}
+                                            </span>
+                                            {link.name}
+                                        </a>
+                                    )}
                                 </li>
                             ))}
                         </ul>

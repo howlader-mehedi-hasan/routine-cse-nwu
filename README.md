@@ -1,99 +1,98 @@
-# Smart Routine Management System
+# NWU Smart Routine Management System
 
-An AI-powered web application designed to automate and streamline the creation of university class schedules. This system uses constraint satisfaction algorithms to generate conflict-free routines and provides a modern interface for students, faculty, and administrators.
+A modern, full-stack web application designed for North Western University (NWU) to manage and display academic class routines. This system provides a professional interface for students, faculty, and administrators, featuring robust routine management, customizable PDF exports, and secure cloud backups.
 
-## 🚀 Key Features
+## ✨ Key Features
 
-*   **Automated Scheduling (AI Core)**: Uses Python and Google OR-Tools to generate optimize schedules based on teacher availability, room capacity, and course requirements.
-*   **Interactive Routine Views**:
-    *   **Routine View**: A comprehensive calendar view of the schedule.
-    *   **Week View**: A weekly overview for quick planning.
-*   **Public Faculty Directory**:
-    *   View all faculty members with search and filter options (Permanent, Guest, Adjunct).
-    *   **Direct Contact**: One-click buttons for Phone Calls and WhatsApp messages.
-*   **Admin Panel**:
-    *   Manage Faculty, Courses, Rooms, and Batches.
-    *   Add/Edit/Delete records with ease.
-    *   Search and filter functionality.
-*   **Smart Filtering**: Filter schedules by Floor, Room, Faculty, or Batch.
+-   **🗓️ Comprehensive Routine Management**:
+    -   **Weekly View**: A high-level overview of the entire department's schedule.
+    -   **Daily View**: Individual batch/section routines for day-to-day use.
+    -   **Interactive Editing**: Admins can add, update, or delete classes directly from the week view.
+-   **📂 Advanced PDF Exports**:
+    -   Professional-grade routine exports with custom university headers, departmental info, and semester details.
+    -   Supports digital signatures and custom footer text.
+    -   **Theme Persistence**: Exported PDFs always maintain a professional light theme, regardless of the user's interface settings.
+-   **📞 Faculty Directory**:
+    -   Search and filter faculty members by name, initials, or type (Permanent/Guest).
+    -   **One-Click Contact**: Integrated Phone and WhatsApp contact buttons for immediate communication.
+-   **🔒 Secure Administration**:
+    -   Manage Faculty, courses, rooms, and batches through a dedicated Admin Panel.
+    -   **Audit Logs**: Comprehensive tracking of all administrative actions for transparency.
+-   **☁️ Backup & Restore**:
+    -   **Local Backup**: Export routine data as JSON files for local storage.
+    -   **Cloud Backup**: Seamless integration with Supabase for secure, off-site storage and easy restoration.
+-   **🌗 Modern Professional UI**:
+    -   Fully responsive design built with React 19 and Tailwind CSS 4.
+    -   Dynamic Dark/Light mode support with smooth transitions.
 
 ## 🛠️ Tech Stack
 
-*   **Frontend**: React.js, Tailwind CSS, Vite, Lucide React (Icons), Framer Motion (Animations).
-*   **Backend**: Node.js, Express.js.
-*   **AI Engine**: Python, Google OR-Tools.
-*   **Database**: JSON-based storage (Development phase), ready for Supabase migration.
-
-## 📦 Installation & Setup
-
-### Prerequisites
-*   Node.js (v18+ recommended)
-*   Python (v3.8+)
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd SmartRoutine
-```
-
-### 2. Backend (Server) Setup
-Navigate to the server directory and install dependencies:
-```bash
-cd server
-npm install
-```
-
-Start the server (runs on port 5000 by default):
-```bash
-npm run dev
-```
-
-### 3. Frontend (Client) Setup
-Open a new terminal, navigate to the client directory:
-```bash
-cd client
-npm install
-```
-
-Start the React development server:
-```bash
-npm run dev
-```
-The application will be available at `http://localhost:5173`.
-
-### 4. AI Engine (Python) Setup
-Ensure you have a virtual environment set up:
-```bash
-# Create virtual environment (if not exists)
-python -m venv .venv
-
-# Activate virtual environment
-# Mac/Linux:
-source .venv/bin/activate
-# Windows:
-.venv\Scripts\activate
-
-# Install dependencies (if requirements.txt exists)
-pip install -r requirements.txt
-```
+-   **Frontend**: React 19, Vite, Tailwind CSS 4, Framer Motion, Lucide React, Radix UI.
+-   **Backend**: Node.js, Express 5.
+-   **Database & Storage**: Supabase (Postgres & Storage Buckets).
+-   **Authentication**: JWT-based secure login and role-based access control.
+-   **Utilities**: jsPDF (with AutoTable) for client-side document generation.
 
 ## 📂 Project Structure
 
 ```
-SmartRoutine/
-├── client/                 # React Frontend
-│   ├── src/
-│   │   ├── components/     # UI Components (AdminPanel, FacultyList, etc.)
-│   │   ├── services/       # API integration
-│   │   └── ...
+routine-cse-nwu/
+├── src/                    # React Frontend Source
+│   ├── components/         # UI Components (Admin, Routine, Backups, etc.)
+│   ├── services/           # Backend API integration (Axios)
+│   ├── utils/              # PDF Generator and helper functions
 │   └── ...
-├── server/                 # Node.js Backend
-│   ├── controllers/        # Request handlers
-│   ├── repositories/       # Data access layer
-│   ├── routes/             # API routes
-│   └── data/               # JSON database file
-└── ...
+├── controllers/            # Express Request Handlers
+├── routes/                 # API Endpoint Definitions
+├── repositories/           # Supabase Database Access Layer
+├── middleware/             # Auth and Logging Middlewares
+├── public/                 # Static Assets
+└── package.json            # Project Dependencies & Scripts
 ```
 
+## 🚀 Installation & Setup
+
+### Prerequisites
+-   **Node.js** (v18+ recommended)
+-   **Supabase Account** (for database and cloud storage)
+
+### 1. Clone the Repository
+```bash
+git clone <repository-url>
+cd routine-cse-nwu
+```
+
+### 2. Configure Environment Variables
+Create a `.env` file in the root directory and add your credentials:
+```env
+# Server Configuration
+PORT=5000
+JWT_SECRET=your_jwt_secret
+
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_anon_key
+
+# Frontend Configuration
+VITE_API_URL=http://localhost:5000/api
+```
+
+### 3. Install Dependencies
+```bash
+npm install
+```
+
+### 4. Start the Application
+The application uses `concurrently` to run both the frontend and backend in a single terminal.
+```bash
+npm run dev
+```
+-   **Frontend**: Available at `http://localhost:5173`
+-   **Backend API**: Available at `http://localhost:5000/api`
+
+## 📊 Feature Management
+-   **Audit Logs**: Accessible to Super Admins to monitor system changes.
+-   **Settings**: Global application and PDF layout configurations can be managed in the Settings modal.
+
 ## 🤝 Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.
