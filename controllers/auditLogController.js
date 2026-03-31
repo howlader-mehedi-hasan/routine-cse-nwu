@@ -14,8 +14,13 @@ export const getAuditLogs = async (req, res) => {
             timestamp: log.timestamp
         }));
 
+        // Filter logs: Only Super Admins can see 'Bulk Delete' activities
+        const finalLogs = req.user.role === 'Super Admin' 
+            ? mappedLogs 
+            : mappedLogs.filter(log => log.activityType !== 'Bulk Delete');
+
         // Sort by timestamp descending (newest first)
-        const sortedLogs = [...mappedLogs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const sortedLogs = [...finalLogs].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         res.json(sortedLogs);
     } catch (error) {
         console.error("Error fetching audit logs:", error.message);

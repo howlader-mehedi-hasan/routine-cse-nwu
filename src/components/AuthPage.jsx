@@ -114,30 +114,27 @@ export default function AuthPage() {
                         {!isLogin && (
                             <>
                                 <div>
-                                    <label className="text-sm font-medium">Full Name</label>
+                                    <label className="text-sm font-medium">Full Name (Optional)</label>
                                     <input
                                         type="text"
-                                        required
                                         className="w-full px-3 py-2 border rounded-md"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Mobile Number (WhatsApp)</label>
+                                    <label className="text-sm font-medium">Mobile Number (Optional)</label>
                                     <input
                                         type="tel"
-                                        required
                                         className="w-full px-3 py-2 border rounded-md"
                                         value={formData.mobileNumber}
                                         onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Email Address</label>
+                                    <label className="text-sm font-medium">Email Address (Optional)</label>
                                     <input
                                         type="email"
-                                        required
                                         className="w-full px-3 py-2 border rounded-md"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -155,12 +152,11 @@ export default function AuthPage() {
                                 </div>
                                 {formData.role === 'Faculty' && (
                                     <div>
-                                        <label className="text-sm font-medium">Select Faculty Profile</label>
+                                        <label className="text-sm font-medium">Select Faculty Profile (Optional)</label>
                                         <select
                                             className="w-full px-3 py-2 border rounded-md bg-transparent"
                                             value={formData.facultyId}
                                             onChange={(e) => setFormData({ ...formData, facultyId: e.target.value })}
-                                            required
                                         >
                                             <option value="">None / Not Specified</option>
                                             {faculties.length === 0 && <option value="" disabled>No faculties available</option>}
@@ -170,12 +166,11 @@ export default function AuthPage() {
                                 )}
                                 {['Student', 'CR/ACR'].includes(formData.role) && (
                                     <div>
-                                        <label className="text-sm font-medium">Section / Batch</label>
+                                        <label className="text-sm font-medium">Section / Batch (Optional)</label>
                                         <select
                                             className="w-full px-3 py-2 border rounded-md bg-transparent"
                                             value={formData.section}
                                             onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                                            required
                                         >
                                             <option value="">None / Not Specified</option>
                                             {batches.length === 0 && <option value="" disabled>No sections available</option>}

@@ -37,7 +37,7 @@ const mapToSupabase = (data) => {
         full_name: data.fullName,
         mobile_number: data.mobileNumber,
         section: data.section,
-        faculty_id: data.facultyId,
+        faculty_id: data.facultyId !== undefined ? (data.facultyId && data.facultyId !== '' ? parseInt(data.facultyId) : null) : undefined,
         encrypted_password: data.encryptedPassword
     };
     // Remove undefined
@@ -49,8 +49,8 @@ export const register = async (req, res) => {
     try {
         const { username, email, password, role, fullName, mobileNumber, section, facultyId } = req.body;
         
-        if (!username || !email || !password || !fullName || !mobileNumber) {
-            return res.status(400).json({ message: 'All fields (Username, Email, Password, Full Name, Mobile Number) are required for registration' });
+        if (!username || !password) {
+            return res.status(400).json({ message: 'Username and Password are required' });
         }
 
         const existingUser = await dbRepository.findOne('users', 'username', username);
@@ -72,14 +72,15 @@ export const register = async (req, res) => {
             requestedRole = allowedRoles.length > 0 ? allowedRoles[0] : 'Student';
         }
 
-        const isFirstUser = users.length === 0;
+        const users = await dbRepository.getAll('users');
+        const isFirstUser = Array.isArray(users) && users.length === 0;
         const actualRole = isFirstUser ? 'Super Admin' : requestedRole;
         const status = isFirstUser ? 'approved' : 'pending';
 
         const newUser = {
-            id: Date.now().toString(),
+            id: Date.now(), // Store as number for bigint column
             username,
-            email,
+            email: email && email.trim() !== '' ? email : null, // Treat empty string as null for unique constraint
             password: hashedPassword,
             encrypted_password: encryptedPassword,
             role: actualRole,
@@ -92,6 +93,10 @@ export const register = async (req, res) => {
         };
 
         const created = await dbRepository.create('users', newUser);
+
+        if (!created) {
+            return res.status(500).json({ message: 'Failed to create user account' });
+        }
 
         if (status === 'pending') {
             await logActivity('Guest', username, 'Registration Request', `User ${username} requested to create an account as ${requestedRole}.`);
@@ -177,11 +182,11 @@ export const updateUserStatus = async (req, res) => {
         const user = await dbRepository.getById('users', id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (req.user && req.user.role !== 'Super Admin') {
-            if (user.role === 'Super Admin') {
+        if (req.user && String(req.user.role) !== 'Super Admin') {
+            if (String(user.role) === 'Super Admin') {
                 return res.status(403).json({ message: 'Cannot modify a Super Admin' });
             }
-            if (role === 'Super Admin') {
+            if (String(role) === 'Super Admin') {
                 return res.status(403).json({ message: 'Cannot assign Super Admin role' });
             }
         }
@@ -220,9 +225,9 @@ export const createUser = async (req, res) => {
         const encryptedPassword = encryptText(password);
 
         const newUser = {
-            id: Date.now().toString(),
+            id: Date.now(), // Store as number for bigint column
             username,
-            email,
+            email: email && email.trim() !== '' ? email : null, // Treat empty string as null for unique constraint
             password: hashedPassword,
             encrypted_password: encryptedPassword,
             role: role || 'Student',
@@ -236,6 +241,10 @@ export const createUser = async (req, res) => {
 
         const created = await dbRepository.create('users', newUser);
         
+        if (!created) {
+            return res.status(500).json({ message: 'Failed to create user account' });
+        }
+
         await logActivity(req.user.id, req.user.fullName || req.user.username, 'User Created', `Created new user ${created.username} with role ${created.role}.`);
 
         res.status(201).json(mapUser(created));
@@ -253,39 +262,51 @@ export const updateUser = async (req, res) => {
         const user = await dbRepository.getById('users', id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (req.user && req.user.role !== 'Super Admin' && req.user.id !== id) {
+        if (req.user && String(req.user.role) !== 'Super Admin' && String(req.user.id) !== String(id)) {
             if (req.user.role !== 'Admin' && (!req.user.permissions || !req.user.permissions.includes('assign_permissions'))) {
                 return res.status(403).json({ message: 'You can only edit your own profile' });
             }
         }
 
-        if (req.user && req.user.role !== 'Super Admin') {
-            if (user.role === 'Super Admin' && req.user.id !== id) {
+        if (req.user && String(req.user.role) !== 'Super Admin') {
+            if (String(user.role) === 'Super Admin' && String(req.user.id) !== String(id)) {
                 return res.status(403).json({ message: 'Cannot modify a Super Admin' });
             }
-            if (data.role === 'Super Admin') {
+            if (String(data.role) === 'Super Admin') {
                 return res.status(403).json({ message: 'Cannot assign Super Admin role' });
             }
         }
 
-        const isSelfEdit = (req.user && req.user.id === id);
-        const isAdminEdit = (req.user && (req.user.role === 'Super Admin' || req.user.role === 'Admin' || (req.user.permissions && req.user.permissions.includes('assign_permissions'))));
+        const isSelfEdit = (req.user && String(req.user.id) === String(id));
+        const isAdminEdit = (req.user && (String(req.user.role) === 'Super Admin' || String(req.user.role) === 'Admin' || (req.user.permissions && req.user.permissions.includes('assign_permissions'))));
 
         if (isSelfEdit && !isAdminEdit) {
-            delete data.role;
+            // Allow self-switching between Student, Moderator, and Faculty, otherwise delete role
+            if (data.role && !['Student', 'Faculty', 'Moderator'].includes(data.role)) {
+                delete data.role;
+            }
             delete data.status;
             delete data.permissions;
+        } else if (!isSelfEdit && isAdminEdit) {
+            // Admin/Super Admin editing someone else
+            if (req.user.role !== 'Super Admin') {
+                delete data.role; // Only Super Admin can modify someone else's role
+            }
         }
 
         // Check conflicts
-        if (data.username || data.email) {
+        if (data.username || (data.email !== undefined)) {
             if (data.username) {
                 const existing = await dbRepository.findOne('users', 'username', data.username);
-                if (existing && existing.id !== id) return res.status(400).json({ message: 'Username already in use' });
+                if (existing && String(existing.id) !== String(id)) return res.status(400).json({ message: 'Username already in use' });
             }
-            if (data.email) {
-                const existing = await dbRepository.findOne('users', 'email', data.email);
-                if (existing && existing.id !== id) return res.status(400).json({ message: 'Email already in use' });
+            if (data.email !== undefined) {
+                // Treat empty string as null
+                data.email = data.email && data.email.trim() !== '' ? data.email : null;
+                if (data.email) {
+                    const existing = await dbRepository.findOne('users', 'email', data.email);
+                    if (existing && String(existing.id) !== String(id)) return res.status(400).json({ message: 'Email already in use' });
+                }
             }
         }
 
@@ -307,7 +328,7 @@ export const changeUserPassword = async (req, res) => {
             return res.status(400).json({ message: 'Password must be at least 6 characters long' });
         }
 
-        if (req.user && req.user.role !== 'Super Admin' && req.user.id !== id) {
+        if (req.user && String(req.user.role) !== 'Super Admin' && String(req.user.id) !== String(id)) {
             return res.status(403).json({ message: 'You can only change your own password' });
         }
 
@@ -332,7 +353,7 @@ export const requestNameChange = async (req, res) => {
     try {
         const { id } = req.params;
         const { requestedName } = req.body;
-        if (req.user && req.user.role !== 'Super Admin' && req.user.id !== id) {
+        if (req.user && String(req.user.role) !== 'Super Admin' && String(req.user.id) !== String(id)) {
             return res.status(403).json({ message: 'You can only request your own name change' });
         }
         if (!requestedName || requestedName.trim() === '') {
@@ -403,7 +424,7 @@ export const bulkDeleteUsers = async (req, res) => {
         const users = await dbRepository.getAll('users');
         
         const safeIds = ids.filter(id => {
-            const user = users.find(u => u.id === id);
+            const user = users.find(u => String(u.id) === String(id));
             return user && user.role !== 'Super Admin';
         });
 

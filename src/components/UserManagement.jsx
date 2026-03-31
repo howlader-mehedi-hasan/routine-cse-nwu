@@ -19,10 +19,11 @@ export default function UserManagement() {
     const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const [formData, setFormData] = useState({
-        username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: ''
+        username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: '', facultyId: ''
     });
     const [passwordData, setPasswordData] = useState({ password: '' });
     const [showPassword, setShowPassword] = useState(false);
+    const [facultySearch, setFacultySearch] = useState('');
 
     const allRoles = ['Super Admin', 'Admin', 'Moderator', 'Editor', 'Department Head', 'Faculty', 'Student', 'CR/ACR'];
     const roles = currentUser?.role === 'Super Admin' ? allRoles : allRoles.filter(r => r !== 'Super Admin');
@@ -50,6 +51,33 @@ export default function UserManagement() {
         loadUsersAndBatches();
     }, []);
 
+    const sortedFaculties = React.useMemo(() => {
+        return [...faculties].sort((a, b) => a.name.localeCompare(b.name));
+    }, [faculties]);
+
+    const sortedBatches = React.useMemo(() => {
+        return [...batches].sort((a, b) => {
+            const getScore = (name) => {
+                const yearMatch = name.match(/(\d+)/);
+                const semMatch = name.match(/(\d+)(?:st|nd|rd|th) Sem/);
+                const year = yearMatch ? parseInt(yearMatch[1]) : 0;
+                const sem = semMatch ? parseInt(semMatch[1] || (name.includes('1st') ? 1 : name.includes('2nd') ? 2 : 0)) : 0;
+                return year * 10 + sem;
+            };
+            const scoreA = getScore(a.name);
+            const scoreB = getScore(b.name);
+            if (scoreA !== scoreB) return scoreA - scoreB;
+            return (a.section || '').localeCompare(b.section || '');
+        });
+    }, [batches]);
+
+    const filteredFaculties = React.useMemo(() => {
+        return sortedFaculties.filter(f => 
+            f.name.toLowerCase().includes(facultySearch.toLowerCase()) || 
+            f.initials.toLowerCase().includes(facultySearch.toLowerCase())
+        );
+    }, [sortedFaculties, facultySearch]);
+
     const updateStatus = async (userId, status, role = null) => {
         try {
             const updates = { status };
@@ -69,7 +97,7 @@ export default function UserManagement() {
             await api.post('/auth/users', formData);
             toast.success('User created successfully');
             setIsCreateModalOpen(false);
-            setFormData({ username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: '' });
+            setFormData({ username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: '', facultyId: '' });
             loadUsersAndBatches();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to create user');
@@ -97,7 +125,8 @@ export default function UserManagement() {
                 fullName: formData.fullName,
                 mobileNumber: formData.mobileNumber,
                 permissions: formData.permissions,
-                section: formData.section
+                section: formData.section,
+                facultyId: formData.facultyId
             });
             toast.success('User updated successfully');
             setIsEditModalOpen(false);
@@ -164,7 +193,18 @@ export default function UserManagement() {
 
     const openEditModal = (user) => {
         setSelectedUser(user);
-        setFormData({ username: user.username, email: user.email, role: user.role, status: user.status, fullName: user.fullName || '', mobileNumber: user.mobileNumber || '', permissions: user.permissions || [], section: user.section || (batches.length > 0 ? batches[0].id.toString() : '') });
+        setFacultySearch('');
+        setFormData({ 
+            username: user.username, 
+            email: user.email, 
+            role: user.role, 
+            status: user.status, 
+            fullName: user.fullName || '', 
+            mobileNumber: user.mobileNumber || '', 
+            permissions: user.permissions || [], 
+            section: user.section || (batches.length > 0 ? batches[0].id.toString() : ''),
+            facultyId: user.facultyId || ''
+        });
         setIsEditModalOpen(true);
     };
 
@@ -211,7 +251,8 @@ export default function UserManagement() {
                 </div>
                 <button
                     onClick={() => {
-                        setFormData({ username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: batches.length > 0 ? batches[0].id.toString() : '' });
+                        setFacultySearch('');
+                        setFormData({ username: '', email: '', password: '', role: 'Student', status: 'approved', fullName: '', mobileNumber: '', permissions: [], section: batches.length > 0 ? batches[0].id.toString() : '', facultyId: '' });
                         setIsCreateModalOpen(true);
                     }}
                     className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
@@ -260,9 +301,10 @@ export default function UserManagement() {
                                     <div className="flex flex-col text-sm w-full md:w-48">
                                         <span className="text-muted-foreground text-xs mb-1">Requested Role:</span>
                                         <select
-                                            className="px-2 py-1 border rounded bg-background"
+                                            className="px-2 py-1 border rounded bg-background disabled:opacity-70 disabled:cursor-not-allowed"
                                             value={user.role}
                                             onChange={(e) => updateStatus(user.id, 'pending', e.target.value)}
+                                            disabled={currentUser?.role !== 'Super Admin'}
                                         >
                                             {roles.map(r => <option key={r} value={r}>{r}</option>)}
                                         </select>
@@ -678,11 +720,14 @@ export default function UserManagement() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Role</label>
+                                <label className="block text-sm font-medium mb-1">
+                                    Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
+                                </label>
                                 <select
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
                                     value={formData.role}
                                     onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                    disabled={currentUser?.role !== 'Super Admin'}
                                 >
                                     {roles.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
@@ -697,8 +742,32 @@ export default function UserManagement() {
                                         required
                                     >
                                         {batches.length === 0 && <option value="" disabled>No sections available</option>}
-                                        {batches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
+                                        {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
                                     </select>
+                                </div>
+                            )}
+                            {formData.role === 'Faculty' && (
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-medium mb-1">Faculty Profile</label>
+                                    <div className="relative">
+                                        <div className="flex gap-2 mb-2">
+                                            <input
+                                                type="text"
+                                                placeholder="Search faculty..."
+                                                className="flex-grow px-3 py-1.5 text-xs border rounded bg-muted/30 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                value={facultySearch}
+                                                onChange={e => setFacultySearch(e.target.value)}
+                                            />
+                                        </div>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                                            value={formData.facultyId}
+                                            onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                        >
+                                            <option value="">None / Not Specified</option>
+                                            {filteredFaculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
+                                        </select>
+                                    </div>
                                 </div>
                             )}
                             <div className="pt-4 flex justify-end gap-3">
@@ -771,18 +840,22 @@ export default function UserManagement() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Role</label>
+                                <label className="block text-sm font-medium mb-1">
+                                    Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
+                                </label>
                                 <select
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
+                                    className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
                                     value={formData.role}
                                     onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                    disabled={selectedUser?.role === 'Super Admin'}
+                                    disabled={selectedUser?.role === 'Super Admin' || currentUser?.role !== 'Super Admin'}
                                 >
                                     {roles.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
-                                {selectedUser?.role === 'Super Admin' && (
+                                {selectedUser?.role === 'Super Admin' ? (
                                     <p className="text-xs text-amber-500 mt-1">Super Admin role cannot be changed directly here.</p>
-                                )}
+                                ) : currentUser?.role !== 'Super Admin' ? (
+                                    <p className="text-xs text-muted-foreground mt-1 text-red-400">Only Super Admins can modify user roles.</p>
+                                ) : null}
                             </div>
 
                             {['Student', 'CR/ACR'].includes(formData.role) && (
@@ -795,7 +868,20 @@ export default function UserManagement() {
                                         required
                                     >
                                         {batches.length === 0 && <option value="" disabled>No sections available</option>}
-                                        {batches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
+                                        {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            {formData.role === 'Faculty' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Faculty Profile</label>
+                                    <select
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.facultyId}
+                                        onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                    >
+                                        <option value="">None / Not Specified</option>
+                                        {faculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
                                     </select>
                                 </div>
                             )}
