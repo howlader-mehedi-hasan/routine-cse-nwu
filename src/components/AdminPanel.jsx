@@ -240,6 +240,20 @@ const AdminPanel = () => {
             return true;
         });
 
+        // Numerical sorting for Courses tab (by code digits)
+        if (activeTab === 'courses') {
+            result.sort((a, b) => {
+                const numA = parseInt((a.code || '').match(/\d+/)?.[0] || '0', 10);
+                const numB = parseInt((b.code || '').match(/\d+/)?.[0] || '0', 10);
+                return numA - numB || (a.code || '').localeCompare(b.code || '');
+            });
+        }
+
+        // Alphabetical sorting for Faculty tab
+        if (activeTab === 'faculty') {
+            result.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        }
+
         // Numeric Sorting for Rooms tab (digit order)
         if (activeTab === 'rooms') {
             result.sort((a, b) => {
@@ -300,6 +314,16 @@ const AdminPanel = () => {
         }
         return [];
     }, [dataList, activeTab]);
+
+    // Memoized sorted rooms for dropdowns
+    const sortedRooms = useMemo(() => {
+        return [...rooms].sort((a, b) => {
+            const numA = parseInt(String(a.room_number).replace(/\D/g, ''), 10) || 0;
+            const numB = parseInt(String(b.room_number).replace(/\D/g, ''), 10) || 0;
+            if (numA !== numB) return numA - numB;
+            return String(a.room_number).localeCompare(String(b.room_number));
+        });
+    }, [rooms]);
 
     // Tabs are now defined dynamically above
 
@@ -535,7 +559,7 @@ const AdminPanel = () => {
                                                     onChange={e => setBatchForm({ ...batchForm, default_room_id: e.target.value })}
                                                 >
                                                     <option value="">Select Room</option>
-                                                    {rooms.map(r => (
+                                                    {sortedRooms.map(r => (
                                                         <option key={r.id} value={r.id}>Room {r.room_number}</option>
                                                     ))}
                                                 </Select>

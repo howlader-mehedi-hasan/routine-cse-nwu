@@ -273,7 +273,6 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             setLoading(false);
         }
     };
-    
     const sortedBatches = React.useMemo(() => {
         if (!metadata.batches) return [];
         return [...metadata.batches].sort((a, b) => {
@@ -291,6 +290,15 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             return (a.section || '').localeCompare(b.section || '');
         });
     }, [metadata.batches]);
+    
+    const sortedRooms = React.useMemo(() => {
+        if (!metadata.rooms) return [];
+        return [...metadata.rooms].sort((a, b) => {
+            const numA = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+            const numB = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+            return numA - numB || a.room_number.localeCompare(b.room_number);
+        });
+    }, [metadata.rooms]);
 
     // Sync table width to scrollbars
     useEffect(() => {
@@ -1487,7 +1495,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                                     onChange={(e) => setSelectedBatchRoom(e.target.value)}
                                                                 >
                                                                     <option value="">Select</option>
-                                                                    {metadata.rooms.map(r => (
+                                                                    {sortedRooms.map(r => (
                                                                         <option key={r.id} value={r.id}>{r.room_number}</option>
                                                                     ))}
                                                                 </select>
