@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, getSettings, updateSettings, exportRoutine, importRoutine } from '../services/api';
+import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getSettings, updateSettings, exportRoutine, importRoutine } from '../services/api';
 import { generateWeeklyRoutinePDF } from '../utils/pdfGenerator';
-import { Download, Check, X, MapPin, Plus, Edit2, Trash, Upload, HardDriveDownload, Cloud } from 'lucide-react';
+import { Download, Check, X, MapPin, Plus, Edit2, Trash, Trash2, Upload, HardDriveDownload, Cloud, Search } from 'lucide-react';
 import { Button } from './ui/Button';
+import { SearchableSelect } from './ui/SearchableSelect';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -601,6 +602,26 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         reader.readAsText(file);
     };
 
+    const handleClearRoutine = async () => {
+        const confirmation = window.prompt('To clear the FULL routine data, please type "clear full routine":');
+        if (confirmation !== 'clear full routine') {
+            if (confirmation !== null) {
+                toast.error('Invalid confirmation message. Routine not cleared.');
+            }
+            return;
+        }
+
+        const loadingToast = toast.loading('Clearing full routine...');
+        try {
+            await clearRoutine();
+            toast.success('Full routine data cleared successfully!', { id: loadingToast });
+            fetchData();
+        } catch (err) {
+            console.error("Clear Routine Error:", err);
+            toast.error(err.response?.data?.message || 'Failed to clear routine.', { id: loadingToast });
+        }
+    };
+
     // Determine active time slots based on selected course and day in add modal
     const modalDayConfig = getConfigForDay(newClassData.day);
     const theorySlots = modalDayConfig.theory_slots;
@@ -637,6 +658,10 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 <Button variant="ghost" size="sm" onClick={handleImportBackup} title="Restore Routine" className="text-muted-foreground hover:text-emerald-600">
                                     <Upload className="mr-2 h-4 w-4" />
                                     Restore
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={handleClearRoutine} title="Clear Full Routine" className="text-muted-foreground hover:text-red-500">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Clear
                                 </Button>
                             </div>
                             <Button variant="outline" onClick={() => setShowSettingsModal(true)}>
@@ -874,8 +899,27 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
             {/* Add Class Modal */}
             {
-                isAddModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                isAddModalOpen && (() => {
+                    const selectedBatch = metadata.batches.find(b => String(b.id) === String(newClassData.batchId));
+                    let filteredCourses = metadata.courses;
+
+                    if (selectedBatch) {
+                        const parts = selectedBatch.name.split(' ');
+                        const yearNum = parseInt(parts[0]) || 0;
+                        const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
+                        
+                        if (yearNum && semNum) {
+                            const prefix = `${yearNum}${semNum}`;
+                            const filtered = metadata.courses.filter(c => {
+                                const numericPart = c.code.match(/\d+/);
+                                return numericPart && numericPart[0].startsWith(prefix);
+                            });
+                            if (filtered.length > 0) filteredCourses = filtered;
+                        }
+                    }
+
+                    return (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                         <div className="bg-card w-full max-w-md rounded-lg shadow-lg border border-border p-6 space-y-4">
                             <div className="flex justify-between items-center">
                                 <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -960,52 +1004,62 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                         }}
                                     >
                                         <option value="">Select Course</option>
-                                        {metadata.courses.map(course => (
-                                            <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
-                                        ))}
+                                        {[...filteredCourses]
+                                            .sort((a, b) => {
+                                                const aNum = parseInt(a.code.match(/\d+/)?.[0] || 0);
+                                                const bNum = parseInt(b.code.match(/\d+/)?.[0] || 0);
+                                                return aNum - bNum || a.code.localeCompare(b.code);
+                                            })
+                                            .map(course => (
+                                                <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
+                                            ))
+                                        }
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Faculty</label>
-                                    <select
-                                        className="w-full p-2 rounded-md border border-input bg-background text-sm"
+                                    <SearchableSelect
+                                        options={metadata.faculty
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map(f => ({
+                                                value: f.id,
+                                                label: `${f.name} (${f.initials})`,
+                                                searchTerms: `${f.name} ${f.initials}`
+                                            }))
+                                        }
                                         value={newClassData.facultyId}
-                                        onChange={(e) => setNewClassData({ ...newClassData, facultyId: e.target.value })}
-                                    >
-                                        <option value="">Select Faculty</option>
-                                        {metadata.faculty.map(fac => (
-                                            <option key={fac.id} value={fac.id}>{fac.name} ({fac.initials})</option>
-                                        ))}
-                                    </select>
+                                        onValueChange={(val) => setNewClassData({ ...newClassData, facultyId: val })}
+                                        placeholder="Select Faculty"
+                                        searchPlaceholder="Search name or initials..."
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Room</label>
-                                    <select
-                                        className="w-full p-2 rounded-md border border-input bg-background text-sm"
-                                        value={newClassData.roomId}
-                                        onChange={(e) => setNewClassData({ ...newClassData, roomId: e.target.value })}
-                                    >
-                                        <option value="">Select Room</option>
-                                        {/* Intelligent Room Filtering */}
-                                        {metadata.rooms.filter(room => {
+                                    <SearchableSelect
+                                        options={metadata.rooms.filter(room => {
                                             if (!newClassData.courseId) return true;
-
-                                            // Find course object
-                                            const courseId = String(newClassData.courseId).split('-')[0];
+                                            const courseId = String(newClassData.courseId).split("-")[0];
                                             const course = metadata.courses.find(c => String(c.id) === courseId);
-
                                             if (!course) return true;
-
-                                            // Exception for HUM-1142
-                                            if (course.code === 'HUM-1142' || course.code === 'Hum-1142') return true;
-
-                                            // Filter by Type
+                                            if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
                                             const isLab = isLabCourse(newClassData.courseId);
-                                            return isLab ? room.type === 'Lab' : room.type === 'Theory';
-                                        }).map(room => (
-                                            <option key={room.id} value={room.id}>{room.room_number}</option>
-                                        ))}
-                                    </select>
+                                            return isLab ? room.type === "Lab" : room.type === "Theory";
+                                        })
+                                        .sort((a, b) => {
+                                            const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+                                            const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+                                            return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                        })
+                                        .map(room => ({
+                                            value: room.id,
+                                            label: `${room.room_number} (${room.type === "Theory" ? "Class" : "Laboratory"})`,
+                                            searchTerms: room.room_number
+                                        }))}
+                                        value={newClassData.roomId}
+                                        onValueChange={(val) => setNewClassData({ ...newClassData, roomId: val })}
+                                        placeholder="Select Room"
+                                        searchPlaceholder="Search room number..."
+                                    />
                                 </div>
                             </div>
                             <div className="flex justify-between gap-2 pt-2">
@@ -1022,8 +1076,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             </div>
                         </div>
                     </div>
-                )
-            }
+                );
+            })()}
 
             {/* Selection Modal for Multi-Class Slots */}
             {

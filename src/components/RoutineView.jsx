@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getRoutine, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, getSettings, updateSettings } from '../services/api';
 import { generateRoutineViewPDF } from '../utils/pdfGenerator';
 import autoTable from 'jspdf-autotable';
-import { Download, Plus, Filter, Calendar, Settings, X, Check, Trash2, Edit2, MapPin } from 'lucide-react';
+import { Download, Plus, Filter, Calendar, Settings, X, Check, Trash2, Edit2, MapPin, Search } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Select } from './ui/Select';
+import { SearchableSelect } from './ui/SearchableSelect';
 import { Card, CardContent } from './ui/Card';
 import toast from 'react-hot-toast';
 import { cn } from '../lib/utils';
@@ -1223,56 +1224,85 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                     className="w-full"
                                 >
                                     <option value="">Select Course</option>
-                                    {metadata.courses.map(c => (
-                                        <option key={c.id} value={c.id}>
-                                            {c.code} - {c.name} {c.type === 'Lab' ? '(Lab)' : ''}
-                                        </option>
-                                    ))}
+                                    {(() => {
+                                        const selectedBatch = metadata.batches.find(b => String(b.id) === String(formData.batch_id));
+                                        let filteredCourses = metadata.courses;
+
+                                        if (selectedBatch) {
+                                            const parts = selectedBatch.name.split(" ");
+                                            const yearNum = parseInt(parts[0]) || 0;
+                                            const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
+                                            
+                                            if (yearNum && semNum) {
+                                                const prefix = `${yearNum}${semNum}`;
+                                                const filtered = metadata.courses.filter(c => {
+                                                    const numericPart = c.code.match(/\\d+/);
+                                                    return numericPart && numericPart[0].startsWith(prefix);
+                                                });
+                                                if (filtered.length > 0) filteredCourses = filtered;
+                                            }
+                                        }
+
+                                        return [...filteredCourses]
+                                            .sort((a, b) => {
+                                                const aNum = parseInt(a.code.match(/\\d+/)?.[0] || 0);
+                                                const bNum = parseInt(b.code.match(/\\d+/)?.[0] || 0);
+                                                return aNum - bNum || a.code.localeCompare(b.code);
+                                            })
+                                            .map(c => (
+                                                <option key={c.id} value={c.id}>
+                                                    {c.code} - {c.name} {c.type === "Lab" ? "(Lab)" : ""}
+                                                </option>
+                                            ));
+                                    })()}
                                 </Select>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Faculty</label>
-                                    <Select
+                                    <SearchableSelect
+                                        options={metadata.faculty
+                                            .sort((a, b) => a.name.localeCompare(b.name))
+                                            .map(f => ({
+                                                value: f.id,
+                                                label: `${f.name} (${f.initials})`,
+                                                searchTerms: `${f.name} ${f.initials}`
+                                            }))
+                                        }
                                         value={formData.faculty_id}
-                                        onChange={(e) => setFormData({ ...formData, faculty_id: e.target.value })}
-                                        className="w-full"
-                                    >
-                                        <option value="">Select Faculty</option>
-                                        {metadata.faculty.map(f => (
-                                            <option key={f.id} value={f.id}>{f.name} ({f.initials})</option>
-                                        ))}
-                                    </Select>
+                                        onValueChange={(val) => setFormData({ ...formData, faculty_id: val })}
+                                        placeholder="Select Faculty"
+                                        searchPlaceholder="Search name or initials..."
+                                    />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Room</label>
-                                    <Select
-                                        value={formData.room_id}
-                                        onChange={(e) => setFormData({ ...formData, room_id: e.target.value })}
-                                        className="w-full"
-                                    >
-                                        <option value="">Select Room</option>
-                                        {/* Intelligent Room Filtering */}
-                                        {metadata.rooms.filter(r => {
+                                    <SearchableSelect
+                                        options={metadata.rooms.filter(r => {
                                             if (!formData.course_id) return true;
-
-                                            // Find course object
-                                            const courseId = String(formData.course_id).split('-')[0];
+                                            const courseId = String(formData.course_id).split("-")[0];
                                             const course = metadata.courses.find(c => String(c.id) === courseId);
-
                                             if (!course) return true;
-
-                                            // Exception for HUM-1142
-                                            if (course.code === 'HUM-1142' || course.code === 'Hum-1142') return true;
-
-                                            // Filter by Type
+                                            if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
                                             const isLab = isLabCourse(formData.course_id);
-                                            return isLab ? r.type === 'Lab' : r.type === 'Theory';
-                                        }).map(r => (
-                                            <option key={r.id} value={r.id}>Room {r.room_number}</option>
-                                        ))}
-                                    </Select>
+                                            return isLab ? r.type === "Lab" : r.type === "Theory";
+                                        })
+                                        .sort((a, b) => {
+                                            const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+                                            const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+                                            return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                        })
+                                        .map(r => ({
+                                            value: r.id,
+                                            label: `Room ${r.room_number} (${r.type === "Theory" ? "Class" : "Laboratory"})`,
+                                            searchTerms: r.room_number
+                                        }))}
+                                        value={formData.room_id}
+                                        onValueChange={(val) => setFormData({ ...formData, room_id: val })}
+                                        placeholder="Select Room"
+                                        searchPlaceholder="Search room number..."
+                                    />
                                 </div>
                             </div>
 
