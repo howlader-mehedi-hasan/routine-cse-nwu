@@ -120,9 +120,25 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                         const rawText = data.cell.text.join(' ');
                         if (rawText.trim() === '') return;
 
-                        const isLabTextMatched = rawText.includes('LAB');
-                        const hasAlt = rawText.includes('ALT');
-                        const cleanText = rawText.replace(/LAB/g, ' ').replace(/ALT/g, ' ').replace(/[()]/g, ' ').trim();
+                        // Identify markers
+                        const isLabTextMatched = rawText.includes('PDF_LAB');
+                        const hasAltMatched = rawText.includes('PDF_ALT');
+                        
+                        let extraText = '';
+                        const extraTextMatch = rawText.match(/EXTRA_TEXT:\s*(.*?)(?:PDF_LAB|PDF_ALT|$)/);
+                        if (extraTextMatch) {
+                            extraText = extraTextMatch[1].trim();
+                        }
+
+                        // Clean the text for normal course/faculty/room extraction
+                        let cleanText = rawText
+                            .replace(/EXTRA_TEXT:.*$/, '')
+                            .replace(/PDF_LAB/g, ' ')
+                            .replace(/PDF_ALT/g, ' ')
+                            .replace(/LAB/g, ' ')
+                            .replace(/ALT/g, ' ')
+                            .replace(/[()]/g, ' ')
+                            .trim();
 
                         const allRooms = [];
                         const roomStartMatch = cleanText.match(/R-([\w\d]+(?:\s*\/\s*[\w\d]+)*)/)
@@ -150,7 +166,7 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
 
                         let newLines = [];
 
-                        if (allCourses.length >= 2 && hasAlt) {
+                        if (allCourses.length >= 2 && hasAltMatched) {
                             // Dual alternate class format
                             const code1 = allCourses[0].full;
                             const fac1 = facWords[0] || '';
@@ -164,18 +180,21 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                             newLines.push('-alt-');
                             newLines.push(code2);
                             newLines.push(fac2 + (room2 ? '_' + room2 : ''));
-                            if (isLabTextMatched) newLines.push('(LAB)');
                         } else if (allCourses.length === 1) {
                             // Single class format
                             newLines.push(allCourses[0].prefix + '-');
                             newLines.push(allCourses[0].num);
                             if (facWords[0]) newLines.push('-' + facWords[0]);
                             if (allRooms[0]) newLines.push('_' + allRooms[0]);
-                            if (isLabTextMatched) newLines.push('(LAB)');
-                            if (hasAlt) newLines.push('-alt-');
+                            if (hasAltMatched) newLines.push('-alt-');
                         } else if (cleanText.trim()) {
                             // Fallback
                             newLines = [cleanText.trim()];
+                        }
+
+                        // Append the extracted additional text if it exists
+                        if (extraText) {
+                            newLines.push(extraText);
                         }
 
                         if (newLines.length > 0) {

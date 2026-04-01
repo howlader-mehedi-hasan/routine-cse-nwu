@@ -113,9 +113,9 @@ const AdminPanel = () => {
             if (activeTab === 'batches') {
                 const batchName = `${batchForm.year} ${batchForm.semester}`;
                 // Check for duplicate batch name + section
-                const isDuplicate = dataList.some(item => 
-                    item.name === batchName && 
-                    item.section === batchForm.section && 
+                const isDuplicate = dataList.some(item =>
+                    item.name === batchName &&
+                    item.section === batchForm.section &&
                     item.id !== editingId
                 );
 
@@ -310,7 +310,7 @@ const AdminPanel = () => {
                     <h2 className="text-3xl font-bold tracking-tight text-foreground">Database Admin Dashboard</h2>
                     <p className="text-muted-foreground mt-1">Manage system data, schedule, and configurations.</p>
                 </div>
-                
+
                 {/* Backup & Restore Option */}
                 {hasPermission('manage_database') && (
                     <div className="flex items-center gap-2">
@@ -460,14 +460,14 @@ const AdminPanel = () => {
                                         <FormField label="Credits">
                                             <Input type="number" step="0.5" value={courseForm.credit} onChange={e => setCourseForm({ ...courseForm, credit: Number(e.target.value) })} required />
                                         </FormField>
-                                        <FormField label="Assigned Faculty ID">
+                                        {/* <FormField label="Assigned Faculty ID">
                                             <Input type="number" value={courseForm.assigned_faculty_id} onChange={e => setCourseForm({ ...courseForm, assigned_faculty_id: Number(e.target.value) })} required />
+                                        </FormField> */}
+                                        {/* <div className="md:col-span-2"> */}
+                                        <FormField label="Course Name">
+                                            <Input value={courseForm.name} onChange={e => setCourseForm({ ...courseForm, name: e.target.value })} placeholder="Course Name" required />
                                         </FormField>
-                                        <div className="md:col-span-2">
-                                            <FormField label="Course Name">
-                                                <Input value={courseForm.name} onChange={e => setCourseForm({ ...courseForm, name: e.target.value })} placeholder="Course Name" required />
-                                            </FormField>
-                                        </div>
+                                        {/* </div> */}
                                     </div>
                                 )}
 
@@ -766,7 +766,7 @@ const AdminPanel = () => {
                 </div>
             </div>
 
-            <BackupDashboard 
+            <BackupDashboard
                 isOpen={isBackupModalOpen}
                 onClose={() => setIsBackupModalOpen(false)}
                 onRestoreSuccess={fetchData} // Pass fetchData to refresh data after restore

@@ -185,10 +185,10 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         const top = topScrollContainerRef.current;
 
         const handleDupScroll = () => {
-             if (!dup) return;
-             const scrollLeft = dup.scrollLeft;
-             if (table && Math.abs(table.scrollLeft - scrollLeft) > 1) table.scrollLeft = scrollLeft;
-             if (top && Math.abs(top.scrollLeft - scrollLeft) > 1) top.scrollLeft = scrollLeft;
+            if (!dup) return;
+            const scrollLeft = dup.scrollLeft;
+            if (table && Math.abs(table.scrollLeft - scrollLeft) > 1) table.scrollLeft = scrollLeft;
+            if (top && Math.abs(top.scrollLeft - scrollLeft) > 1) top.scrollLeft = scrollLeft;
         };
 
         if (dup) {
@@ -317,7 +317,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
         const facultyIds = currentData.map(d => String(d.facultyId));
         const selectFaculty = metadata.faculty.filter(f => facultyIds.includes(String(f.id)));
-        
+
         setSelectedFacultyList(selectFaculty);
         setShowContactModal(true);
     };
@@ -682,12 +682,12 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 <Settings2 className="h-4 w-4" />
                             </Button>
                         )}
-                        <Button 
-                            variant="default" 
+                        <Button
+                            variant="default"
                             className={cn(
                                 "bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm",
                                 user && canEdit ? "rounded-l-none" : ""
-                            )} 
+                            )}
                             onClick={() => downloadPDF(pdfSettings)}
                         >
                             <Download className="mr-2 h-4 w-4" />
@@ -699,12 +699,12 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
             {/* Sticky Duplicate Header */}
             {showStickyHeader && (
-                <div 
+                <div
                     className="fixed top-[64px] z-40 bg-card border-b border-border shadow-md pointer-events-auto table-container-wrapper"
                     style={{ left: headerLayout.left, width: headerLayout.width }}
                 >
-                    <div 
-                        className="overflow-x-auto table-scroll-area" 
+                    <div
+                        className="overflow-x-auto table-scroll-area"
                         ref={duplicateHeaderRef}
                         style={{ width: '100%' }}
                     >
@@ -807,7 +807,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                             }
 
                                             // Prepare display data directly
-                                            const displayCourses = currentData.map(d => d.isLab ? `${d.course} (LAB)` : d.course).join(' / ');
+                                            const displayCourses = currentData.map(d => d.isLab ? `${d.course}` : d.course).join(' / ');
                                             const displayFaculty = currentData.map(d => d.faculty).join(' / ');
                                             const displayRoom = currentData.map(d => d.room).join(' / ');
                                             const displayAdditionalText = currentData.map(d => d.additionalText).filter(Boolean).join(' / ');
@@ -837,19 +837,23 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                                     R-{displayRoom}
                                                                 </span>
                                                             )}
-                                                            {displayAdditionalText && (
-                                                                <span className="text-[9px] text-emerald-600 font-medium leading-tight">
-                                                                    {displayAdditionalText}
-                                                                </span>
-                                                            )}
                                                             <div className="flex gap-1">
                                                                 {isLab && (
-                                                                    <span className="text-[8px] text-emerald-600 font-bold uppercase tracking-wider">LAB</span>
+                                                                    <span className="text-[8px] text-emerald-600 font-bold uppercase tracking-wider">
+                                                                        <span className="hidden">PDF_LAB </span>LAB
+                                                                    </span>
                                                                 )}
                                                                 {isAlt && (
-                                                                    <span className="text-[8px] text-orange-600 font-bold uppercase tracking-wider">ALT</span>
+                                                                    <span className="text-[8px] text-orange-600 font-bold uppercase tracking-wider">
+                                                                        <span className="hidden">PDF_ALT </span>ALT
+                                                                    </span>
                                                                 )}
                                                             </div>
+                                                            {displayAdditionalText && (
+                                                                <span className="text-[9px] text-emerald-600 font-medium leading-tight">
+                                                                    <span className="hidden">EXTRA_TEXT: </span>{displayAdditionalText}
+                                                                </span>
+                                                            )}
 
                                                             {/* Hover Hint / Edit Overlay */}
                                                             {canEdit && (
@@ -869,8 +873,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                                             <Plus className="h-3 w-3" />
                                                                         </Button>
                                                                     )}
-                                                                    <Edit2 
-                                                                        className="h-4 w-4 text-muted-foreground hover:text-indigo-600 cursor-pointer p-0.5" 
+                                                                    <Edit2
+                                                                        className="h-4 w-4 text-muted-foreground hover:text-indigo-600 cursor-pointer p-0.5"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             handleEditClassClick(currentData, batch.id);
@@ -919,7 +923,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                         const parts = selectedBatch.name.split(' ');
                         const yearNum = parseInt(parts[0]) || 0;
                         const semNum = parts.length >= 3 ? parseInt(parts[2]) : 0;
-                        
+
                         if (yearNum && semNum) {
                             const prefix = `${yearNum}${semNum}`;
                             const filtered = metadata.courses.filter(c => {
@@ -932,174 +936,174 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
                     return (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                        <div className="bg-card w-full max-w-md rounded-lg shadow-lg border border-border p-6 space-y-4">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-semibold flex items-center gap-2">
-                                    {editingRoutineId ? (
-                                        <>
-                                            <Edit2 className="h-4 w-4 text-indigo-500" />
-                                            Edit Class Details
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="h-4 w-4 text-emerald-500" />
-                                            Add Manual Class
-                                        </>
-                                    )}
-                                </h3>
-                                <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)}>
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <div className="space-y-3">
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <label className="block text-muted-foreground mb-1">Day</label>
-                                        <div className="font-medium p-2 bg-muted rounded border">{newClassData.day}</div>
+                            <div className="bg-card w-full max-w-md rounded-lg shadow-lg border border-border p-6 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                                        {editingRoutineId ? (
+                                            <>
+                                                <Edit2 className="h-4 w-4 text-indigo-500" />
+                                                Edit Class Details
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus className="h-4 w-4 text-emerald-500" />
+                                                Add Manual Class
+                                            </>
+                                        )}
+                                    </h3>
+                                    <Button variant="ghost" size="icon" onClick={() => setIsAddModalOpen(false)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                        <div>
+                                            <label className="block text-muted-foreground mb-1">Day</label>
+                                            <div className="font-medium p-2 bg-muted rounded border">{newClassData.day}</div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium mb-1">
+                                                Time Slot
+                                                {isLabCourse(newClassData.courseId) && <span className="text-xs text-emerald-600 ml-2">(Lab Duration)</span>}
+                                            </label>
+                                            <select
+                                                className="w-full p-2 rounded-md border border-input bg-background text-sm"
+                                                value={newClassData.time}
+                                                onChange={(e) => setNewClassData({ ...newClassData, time: e.target.value })}
+                                            >
+                                                <option value="">Select Time</option>
+                                                {activeTimeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+                                            </select>
+                                        </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">
-                                            Time Slot
-                                            {isLabCourse(newClassData.courseId) && <span className="text-xs text-emerald-600 ml-2">(Lab Duration)</span>}
-                                        </label>
+                                        <label className="block text-sm font-medium mb-1">Course</label>
                                         <select
                                             className="w-full p-2 rounded-md border border-input bg-background text-sm"
-                                            value={newClassData.time}
-                                            onChange={(e) => setNewClassData({ ...newClassData, time: e.target.value })}
-                                        >
-                                            <option value="">Select Time</option>
-                                            {activeTimeSlots.map(t => <option key={t} value={t}>{t}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Course</label>
-                                    <select
-                                        className="w-full p-2 rounded-md border border-input bg-background text-sm"
-                                        value={newClassData.courseId}
-                                        onChange={(e) => {
-                                            const newCourseId = e.target.value;
-                                            let newTime = newClassData.time;
+                                            value={newClassData.courseId}
+                                            onChange={(e) => {
+                                                const newCourseId = e.target.value;
+                                                let newTime = newClassData.time;
 
-                                            // Intelligent Time Slot Mapping
-                                            if (newCourseId && newClassData.time) {
-                                                const isLab = isLabCourse(newCourseId);
-                                                // Case 1: Switching to Lab Course
-                                                if (isLab) {
-                                                    // Try to find a lab slot that starts at the same time
-                                                    const theoryStart = newClassData.time.split('-')[0].trim();
-                                                    const matchingLabSlot = labSlots.find(ls => ls.startsWith(theoryStart));
+                                                // Intelligent Time Slot Mapping
+                                                if (newCourseId && newClassData.time) {
+                                                    const isLab = isLabCourse(newCourseId);
+                                                    // Case 1: Switching to Lab Course
+                                                    if (isLab) {
+                                                        // Try to find a lab slot that starts at the same time
+                                                        const theoryStart = newClassData.time.split('-')[0].trim();
+                                                        const matchingLabSlot = labSlots.find(ls => ls.startsWith(theoryStart));
 
-                                                    if (matchingLabSlot) {
-                                                        newTime = matchingLabSlot;
-                                                    } else if (!labSlots.includes(newClassData.time)) {
-                                                        // If current time isn't a valid lab slot and no match found, reset or keep? 
-                                                        // RoutineView resets to '' if no match found.
-                                                        newTime = '';
-                                                    }
-                                                }
-                                                // Case 2: Switching to Theory Course
-                                                else {
-                                                    // If currently selected time is a Lab slot (longer), try to revert to standard slot
-                                                    if (labSlots.includes(newClassData.time)) {
-                                                        const labStart = newClassData.time.split('-')[0].trim();
-                                                        const matchingTheorySlot = theorySlots.find(ts => ts.startsWith(labStart));
-                                                        if (matchingTheorySlot) {
-                                                            newTime = matchingTheorySlot;
-                                                        } else {
+                                                        if (matchingLabSlot) {
+                                                            newTime = matchingLabSlot;
+                                                        } else if (!labSlots.includes(newClassData.time)) {
+                                                            // If current time isn't a valid lab slot and no match found, reset or keep? 
+                                                            // RoutineView resets to '' if no match found.
                                                             newTime = '';
                                                         }
                                                     }
+                                                    // Case 2: Switching to Theory Course
+                                                    else {
+                                                        // If currently selected time is a Lab slot (longer), try to revert to standard slot
+                                                        if (labSlots.includes(newClassData.time)) {
+                                                            const labStart = newClassData.time.split('-')[0].trim();
+                                                            const matchingTheorySlot = theorySlots.find(ts => ts.startsWith(labStart));
+                                                            if (matchingTheorySlot) {
+                                                                newTime = matchingTheorySlot;
+                                                            } else {
+                                                                newTime = '';
+                                                            }
+                                                        }
+                                                    }
                                                 }
+                                                setNewClassData({ ...newClassData, courseId: newCourseId, time: newTime });
+                                            }}
+                                        >
+                                            <option value="">Select Course</option>
+                                            {[...filteredCourses]
+                                                .sort((a, b) => {
+                                                    const aNum = parseInt(a.code.match(/\d+/)?.[0] || 0);
+                                                    const bNum = parseInt(b.code.match(/\d+/)?.[0] || 0);
+                                                    return aNum - bNum || a.code.localeCompare(b.code);
+                                                })
+                                                .map(course => (
+                                                    <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
+                                                ))
                                             }
-                                            setNewClassData({ ...newClassData, courseId: newCourseId, time: newTime });
-                                        }}
-                                    >
-                                        <option value="">Select Course</option>
-                                        {[...filteredCourses]
-                                            .sort((a, b) => {
-                                                const aNum = parseInt(a.code.match(/\d+/)?.[0] || 0);
-                                                const bNum = parseInt(b.code.match(/\d+/)?.[0] || 0);
-                                                return aNum - bNum || a.code.localeCompare(b.code);
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Faculty</label>
+                                        <SearchableSelect
+                                            options={metadata.faculty
+                                                .sort((a, b) => a.name.localeCompare(b.name))
+                                                .map(f => ({
+                                                    value: f.id,
+                                                    label: `${f.name} (${f.initials})`,
+                                                    searchTerms: `${f.name} ${f.initials}`
+                                                }))
+                                            }
+                                            value={newClassData.facultyId}
+                                            onValueChange={(val) => setNewClassData({ ...newClassData, facultyId: val })}
+                                            placeholder="Select Faculty"
+                                            searchPlaceholder="Search name or initials..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Room</label>
+                                        <SearchableSelect
+                                            options={metadata.rooms.filter(room => {
+                                                if (!newClassData.courseId) return true;
+                                                const courseId = String(newClassData.courseId).split("-")[0];
+                                                const course = metadata.courses.find(c => String(c.id) === courseId);
+                                                if (!course) return true;
+                                                if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
+                                                const isLab = isLabCourse(newClassData.courseId);
+                                                return isLab ? room.type === "Lab" : room.type === "Theory";
                                             })
-                                            .map(course => (
-                                                <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
-                                            ))
-                                        }
-                                    </select>
+                                                .sort((a, b) => {
+                                                    const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+                                                    const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+                                                    return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                                })
+                                                .map(room => ({
+                                                    value: room.id,
+                                                    label: `${room.room_number} (${room.type === "Theory" ? "Class" : "Laboratory"})`,
+                                                    searchTerms: room.room_number
+                                                }))}
+                                            value={newClassData.roomId}
+                                            onValueChange={(val) => setNewClassData({ ...newClassData, roomId: val })}
+                                            placeholder="Select Room"
+                                            searchPlaceholder="Search room number..."
+                                        />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Faculty</label>
-                                    <SearchableSelect
-                                        options={metadata.faculty
-                                            .sort((a, b) => a.name.localeCompare(b.name))
-                                            .map(f => ({
-                                                value: f.id,
-                                                label: `${f.name} (${f.initials})`,
-                                                searchTerms: `${f.name} ${f.initials}`
-                                            }))
-                                        }
-                                        value={newClassData.facultyId}
-                                        onValueChange={(val) => setNewClassData({ ...newClassData, facultyId: val })}
-                                        placeholder="Select Faculty"
-                                        searchPlaceholder="Search name or initials..."
+                                    <label className="block text-sm font-medium mb-1">Add additional text (optional)</label>
+                                    <input
+                                        type="text"
+                                        className="w-full p-2 rounded-md border border-input bg-background text-sm"
+                                        value={newClassData.additional_text || ''}
+                                        onChange={(e) => setNewClassData({ ...newClassData, additional_text: e.target.value })}
+                                        placeholder="E.g. Makeup class, Alternate faculty..."
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Room</label>
-                                    <SearchableSelect
-                                        options={metadata.rooms.filter(room => {
-                                            if (!newClassData.courseId) return true;
-                                            const courseId = String(newClassData.courseId).split("-")[0];
-                                            const course = metadata.courses.find(c => String(c.id) === courseId);
-                                            if (!course) return true;
-                                            if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
-                                            const isLab = isLabCourse(newClassData.courseId);
-                                            return isLab ? room.type === "Lab" : room.type === "Theory";
-                                        })
-                                        .sort((a, b) => {
-                                            const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
-                                            const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
-                                            return aNum - bNum || a.room_number.localeCompare(b.room_number);
-                                        })
-                                        .map(room => ({
-                                            value: room.id,
-                                            label: `${room.room_number} (${room.type === "Theory" ? "Class" : "Laboratory"})`,
-                                            searchTerms: room.room_number
-                                        }))}
-                                        value={newClassData.roomId}
-                                        onValueChange={(val) => setNewClassData({ ...newClassData, roomId: val })}
-                                        placeholder="Select Room"
-                                        searchPlaceholder="Search room number..."
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Add additional text (optional)</label>
-                                <input
-                                    type="text"
-                                    className="w-full p-2 rounded-md border border-input bg-background text-sm"
-                                    value={newClassData.additional_text || ''}
-                                    onChange={(e) => setNewClassData({ ...newClassData, additional_text: e.target.value })}
-                                    placeholder="E.g. Makeup class, Alternate faculty..."
-                                />
-                            </div>
-                            <div className="flex justify-between gap-2 pt-2">
-                                {editingRoutineId ? (
-                                    <Button variant="destructive" size="sm" onClick={handleDeleteClass}>
-                                        <Trash className="w-4 h-4 mr-2" />
-                                        Delete
-                                    </Button>
-                                ) : <div></div>}
-                                <div className="flex gap-2">
-                                    <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
-                                    <Button onClick={handleSaveClass}>{editingRoutineId ? 'Update Class' : 'Save Class'}</Button>
+                                <div className="flex justify-between gap-2 pt-2">
+                                    {editingRoutineId ? (
+                                        <Button variant="destructive" size="sm" onClick={handleDeleteClass}>
+                                            <Trash className="w-4 h-4 mr-2" />
+                                            Delete
+                                        </Button>
+                                    ) : <div></div>}
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+                                        <Button onClick={handleSaveClass}>{editingRoutineId ? 'Update Class' : 'Save Class'}</Button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                );
-            })()}
+                    );
+                })()}
 
             {/* Selection Modal for Multi-Class Slots */}
             {
@@ -1160,9 +1164,9 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 onSave={handleSavePdfSettings}
             />
 
-            <CloudRoutineBackupModal 
-                isOpen={isCloudModalOpen} 
-                onClose={() => setIsCloudModalOpen(false)} 
+            <CloudRoutineBackupModal
+                isOpen={isCloudModalOpen}
+                onClose={() => setIsCloudModalOpen(false)}
                 routineData={routine}
                 onRestore={async (data) => {
                     const loadingToast = toast.loading('Restoring cloud backup...');

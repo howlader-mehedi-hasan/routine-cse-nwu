@@ -893,8 +893,12 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                         const isLab = data.some(d => d.isLab && labSlots.includes(d.originalTime));
                         
                         const cellContent = data.map(d => {
-                            const courseText = d.isLab ? `${d.course} (LAB)` : d.course;
-                            return `${courseText}\n${d.faculty}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            const courseText = d.course;
+                            let content = `${courseText}\n${d.faculty}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            if (d.additionalText) {
+                                content += `\n${d.additionalText}`;
+                            }
+                            return content;
                         }).join('\n-alt-\n');
 
                         let colSpan = 1;
@@ -942,8 +946,12 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             const facultyOrBatch = viewMode === 'faculty' 
                                 ? (metadata.batches.find(b => String(b.id) === String(d.batchId))?.name + (metadata.batches.find(b => String(b.id) === String(d.batchId))?.section ? ' ' + metadata.batches.find(b => String(b.id) === String(d.batchId))?.section : '')) 
                                 : d.faculty;
-                            const courseText = d.isLab ? `${d.course} (LAB)` : d.course;
-                            return `${courseText}\n${facultyOrBatch}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            const courseText = d.course;
+                            let content = `${courseText}\n${facultyOrBatch}_${d.room !== 'TBA' ? d.room : 'TBA'}`;
+                            if (d.additionalText) {
+                                content += `\n${d.additionalText}`;
+                            }
+                            return content;
                         }).join('\n-alt-\n');
 
                         let colSpan = isLab ? 2 : 1;
