@@ -88,7 +88,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         batch_id: '',
         course_id: '',
         faculty_id: '',
-        room_id: ''
+        room_id: '',
+        additional_text: ''
     });
 
     // Multi-Class Selection Modal State
@@ -318,7 +319,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             batch_id: '', // Reset
             course_id: '',
             faculty_id: '',
-            room_id: ''
+            room_id: '',
+            additional_text: ''
         });
         setEditingId(null);
     };
@@ -359,7 +361,8 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 batch_id: routineEntry.batch_id,
                 course_id: routineEntry.course_id,
                 faculty_id: routineEntry.faculty_id,
-                room_id: routineEntry.room_id
+                room_id: routineEntry.room_id,
+                additional_text: routineEntry.additional_text || ''
             });
         }
         setShowModal(true);
@@ -524,6 +527,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 courseId: classInfo.course_id,
                 facultyId: classInfo.faculty_id, // Added for context
                 roomId: classInfo.room_id,       // Added for context
+                additionalText: classInfo.additional_text,
                 isLab: isLab,
                 credit: credit,
                 originalTime: classInfo.time,
@@ -561,6 +565,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             const displayCourses = currentData.map(d => d.course).join(' / ');
             const displayFaculty = currentData.map(d => d.faculty).join(' / ');
             const displayRoom = currentData.map(d => d.room).join(' / ');
+            const displayAdditionalText = currentData.map(d => d.additionalText).filter(Boolean).join(' / ');
             const isLab = currentData.some(d => d.isLab);
             const isAlt = currentData.some(d => d.credit === 0.75 || d.credit === "0.75");
             const canAddSecond = currentData.length === 1 && isAlt;
@@ -582,6 +587,11 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             {displayRoom && displayRoom !== 'TBA' && (
                                 <span className="text-xs font-mono text-indigo-500 font-medium">
                                     R-{displayRoom}
+                                </span>
+                            )}
+                            {displayAdditionalText && (
+                                <span className="text-xs text-emerald-600 font-medium leading-tight">
+                                    {displayAdditionalText}
                                 </span>
                             )}
                             <div className="flex gap-1 justify-center mt-1">
@@ -731,6 +741,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             const displayCourses = currentData.map(d => d.course).join(' / ');
             const displayFaculty = currentData.map(d => d.faculty).join(' / ');
             const displayRoom = currentData.map(d => d.room).join(' / ');
+            const displayAdditionalText = currentData.map(d => d.additionalText).filter(Boolean).join(' / ');
             const isLab = currentData.some(d => d.isLab);
             const isAlt = currentData.some(d => d.credit === 0.75 || d.credit === "0.75");
             const canAddSecond = currentData.length === 1 && isAlt;
@@ -756,6 +767,11 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                             {displayRoom && displayRoom !== 'TBA' && (
                                 <span className="text-xs font-mono text-indigo-500 font-medium">
                                     R-{displayRoom}
+                                </span>
+                            )}
+                            {displayAdditionalText && (
+                                <span className="text-xs text-emerald-600 font-medium leading-tight">
+                                    {displayAdditionalText}
                                 </span>
                             )}
                             <div className="flex gap-1 justify-center mt-1">
@@ -1304,6 +1320,17 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                         searchPlaceholder="Search room number..."
                                     />
                                 </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium">Add additional text (optional)</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 rounded-md border border-input bg-background text-sm"
+                                    value={formData.additional_text || ''}
+                                    onChange={(e) => setFormData({ ...formData, additional_text: e.target.value })}
+                                    placeholder="E.g. Makeup class, Alternate faculty..."
+                                />
                             </div>
 
                             <div className="pt-2 flex gap-3">

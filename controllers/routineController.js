@@ -21,10 +21,10 @@ const getEntryDetails = async (entry) => {
 
 export const addRoutineEntry = async (req, res) => {
     try {
-        const { day, time, batch_id, course_id, faculty_id, room_id } = req.body;
+        const { day, time, batch_id, course_id, faculty_id, room_id, additional_text } = req.body;
 
         if (!day || !time || !batch_id || !course_id || !faculty_id) {
-            return res.status(400).json({ message: 'All fields are required except room' });
+            return res.status(400).json({ message: 'All fields are required except room and additional text' });
         }
 
         const newEntry = {
@@ -34,7 +34,8 @@ export const addRoutineEntry = async (req, res) => {
             batch_id: parseInt(batch_id),
             course_id: parseInt(course_id),
             faculty_id: parseInt(faculty_id),
-            room_id: room_id ? parseInt(room_id) : null
+            room_id: room_id ? parseInt(room_id) : null,
+            additional_text: additional_text || null
         };
 
         const created = await dbRepository.create('routine_schedule', newEntry);
@@ -73,6 +74,7 @@ export const updateRoutineEntry = async (req, res) => {
         if (updates.faculty_id) parsedUpdates.faculty_id = parseInt(updates.faculty_id);
         if (updates.room_id) parsedUpdates.room_id = parseInt(updates.room_id);
         else if (updates.room_id === '' || updates.room_id === null) parsedUpdates.room_id = null;
+        if (updates.additional_text !== undefined) parsedUpdates.additional_text = updates.additional_text || null;
 
         const updatedEntry = await dbRepository.update('routine_schedule', id, parsedUpdates);
         const newDetails = await getEntryDetails(updatedEntry);

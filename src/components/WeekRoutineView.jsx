@@ -43,7 +43,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         batchId: '',
         courseId: '',
         facultyId: '',
-        roomId: ''
+        roomId: '',
+        additional_text: ''
     });
 
     // Multi-Class Selection Modal State
@@ -282,7 +283,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             batchId,
             courseId: '',
             facultyId: '',
-            roomId: batch ? batch.default_room_id || '' : ''
+            roomId: batch ? batch.default_room_id || '' : '',
+            additional_text: ''
         });
         setIsAddModalOpen(true);
     };
@@ -304,7 +306,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             batchId: batchId,
             courseId: classInfo.courseId,
             facultyId: classInfo.facultyId,
-            roomId: classInfo.roomId
+            roomId: classInfo.roomId,
+            additional_text: classInfo.additionalText || ''
         });
         setIsAddModalOpen(true);
     };
@@ -334,7 +337,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     batch_id: newClassData.batchId,
                     course_id: newClassData.courseId,
                     faculty_id: newClassData.facultyId,
-                    room_id: newClassData.roomId
+                    room_id: newClassData.roomId,
+                    additional_text: newClassData.additional_text
                 });
                 toast.success('Class updated successfully!', { id: loadingToast });
             } else {
@@ -344,7 +348,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     batch_id: newClassData.batchId,
                     course_id: newClassData.courseId,
                     faculty_id: newClassData.facultyId,
-                    room_id: newClassData.roomId
+                    room_id: newClassData.roomId,
+                    additional_text: newClassData.additional_text
                 });
                 toast.success('Class added successfully!', { id: loadingToast });
             }
@@ -497,6 +502,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 courseId: classInfo.course_id,
                 roomId: classInfo.room_id,
                 facultyId: classInfo.faculty_id,
+                additionalText: classInfo.additional_text,
                 isLab: isLab,
                 credit: credit,
                 originalTime: classInfo.time,
@@ -804,6 +810,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                             const displayCourses = currentData.map(d => d.isLab ? `${d.course} (LAB)` : d.course).join(' / ');
                                             const displayFaculty = currentData.map(d => d.faculty).join(' / ');
                                             const displayRoom = currentData.map(d => d.room).join(' / ');
+                                            const displayAdditionalText = currentData.map(d => d.additionalText).filter(Boolean).join(' / ');
                                             const isLab = currentData.some(d => d.isLab);
                                             const isAlt = currentData.some(d => d.credit === 0.75 || d.credit === "0.75");
                                             const canAddSecond = currentData.length === 1 && isAlt;
@@ -828,6 +835,11 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                             {displayRoom && displayRoom !== 'TBA' && (
                                                                 <span className="text-[9px] font-mono text-indigo-500 font-medium">
                                                                     R-{displayRoom}
+                                                                </span>
+                                                            )}
+                                                            {displayAdditionalText && (
+                                                                <span className="text-[9px] text-emerald-600 font-medium leading-tight">
+                                                                    {displayAdditionalText}
                                                                 </span>
                                                             )}
                                                             <div className="flex gap-1">
@@ -1061,6 +1073,16 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                         searchPlaceholder="Search room number..."
                                     />
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Add additional text (optional)</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 rounded-md border border-input bg-background text-sm"
+                                    value={newClassData.additional_text || ''}
+                                    onChange={(e) => setNewClassData({ ...newClassData, additional_text: e.target.value })}
+                                    placeholder="E.g. Makeup class, Alternate faculty..."
+                                />
                             </div>
                             <div className="flex justify-between gap-2 pt-2">
                                 {editingRoutineId ? (
