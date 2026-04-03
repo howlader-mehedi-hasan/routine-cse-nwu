@@ -21,3 +21,16 @@ make the settings parmanent for all, create a data table on supabase to save all
 
 
 also save overtime schedule of each day to database table, so that if i refresh the page the ovetime togle mood(on/off) not being changed
+
+
+when a new user requestade to create a new account, if the acoutn type is student or cr/acr then there will another text input option to input their 11 digits student id.
+create a new datatable on supabase name student_management and save all the information(student_ID, name, email, phone, batch, section, acount_type(student/cr/acr)) of student and cr/acr on the table
+in the faculty section of navigation bar there is only the contact list of faculty,
+replase the faculty button name to "contact", inside the contact button there will be two section, one is faculty contact list and another is student contact list.
+the faculty contact list is already existing, so kepp it as it is, just add a new section for student contact list.
+inside the "student" keep the same design as faculty contact list with student information(student_ID, name, email, phone, batch, section, acount_type(student/cr/acr)) and also keep the call button and whatsapp button for each student to directly call or whatsapp them.
+in side the student contact list there will 2 checkboxs to filter cr/acr/student and also keep the option to fielter by batch and section.
+
+
+
+when anyone clicking on a class box there is a option pop-up named contact faculty, there need another option to contact cr/acr of that batch and section. 

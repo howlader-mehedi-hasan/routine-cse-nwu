@@ -12,6 +12,7 @@ import roomRoutes from './routes/roomRoutes.js';
 import batchRoutes from './routes/batchRoutes.js';
 import routineRoutes from './routes/routineRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+import studentRoutes from './routes/studentRoutes.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 import backupRoutes from './routes/backupRoutes.js';
 
@@ -31,6 +32,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/batches', batchRoutes);
 app.use('/api/routine', routineRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/students', studentRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/backup', backupRoutes);
 
