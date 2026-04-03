@@ -162,14 +162,16 @@ class DBRepository {
         const { data, error } = await this.supabase
             .from('settings')
             .upsert({ key: key, value: newValue }, { onConflict: 'key' })
-            .select('value')
-            .single();
+            .select('value');
         
         if (error) {
             console.error(`Error updating settings for key ${key}:`, error);
+            // Even if select fails, the upsert might have succeeded. 
+            // We return newValue as a fallback.
             return newValue;
         }
-        return data.value;
+        
+        return data && data.length > 0 ? data[0].value : newValue;
     }
 
     // Bulk Operations
