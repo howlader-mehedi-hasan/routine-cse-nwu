@@ -266,13 +266,12 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     }, [routine, metadata, overtimeVisibility, loading]);
 
     const handleBatchRoomUpdate = async (batchId) => {
-        if (!selectedBatchRoom) return;
         const loadingToast = toast.loading('Updating Default Room...');
         try {
             const batch = metadata.batches.find(b => b.id === batchId);
             if (!batch) throw new Error("Batch not found");
 
-            await updateBatch(batchId, { ...batch, default_room_id: selectedBatchRoom });
+            await updateBatch(batchId, { ...batch, default_room_id: selectedBatchRoom || null });
             await fetchData();
             toast.success('Room updated!', { id: loadingToast });
             setEditingBatchId(null);
@@ -309,12 +308,12 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
         setEditingRoutineId(classInfo.id);
         setNewClassData({
-            day: classInfo.day,
-            time: classInfo.originalTime,
+            day: classInfo.day || '',
+            time: classInfo.originalTime || '',
             batchId: batchId,
-            courseId: classInfo.courseId,
-            facultyId: classInfo.facultyId,
-            roomId: classInfo.roomId,
+            courseId: classInfo.courseId || '',
+            facultyId: classInfo.facultyId || '',
+            roomId: classInfo.roomId || '',
             additional_text: classInfo.additionalText || ''
         });
         setIsAddModalOpen(true);
@@ -345,7 +344,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     batch_id: newClassData.batchId,
                     course_id: newClassData.courseId,
                     faculty_id: newClassData.facultyId,
-                    room_id: newClassData.roomId,
+                    room_id: newClassData.roomId || null,
                     additional_text: newClassData.additional_text
                 });
                 toast.success('Class updated successfully!', { id: loadingToast });
@@ -356,7 +355,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                     batch_id: newClassData.batchId,
                     course_id: newClassData.courseId,
                     faculty_id: newClassData.facultyId,
-                    room_id: newClassData.roomId,
+                    room_id: newClassData.roomId || null,
                     additional_text: newClassData.additional_text
                 });
                 toast.success('Class added successfully!', { id: loadingToast });
@@ -1060,25 +1059,28 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Room</label>
                                         <SearchableSelect
-                                            options={metadata.rooms.filter(room => {
-                                                if (!newClassData.courseId) return true;
-                                                const courseId = String(newClassData.courseId).split("-")[0];
-                                                const course = metadata.courses.find(c => String(c.id) === courseId);
-                                                if (!course) return true;
-                                                if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
-                                                const isLab = isLabCourse(newClassData.courseId);
-                                                return isLab ? room.type === "Lab" : room.type === "Theory";
-                                            })
-                                                .sort((a, b) => {
-                                                    const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
-                                                    const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
-                                                    return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                            options={[
+                                                { value: '', label: 'None / TBA' },
+                                                ...metadata.rooms.filter(room => {
+                                                    if (!newClassData.courseId) return true;
+                                                    const courseId = String(newClassData.courseId).split("-")[0];
+                                                    const course = metadata.courses.find(c => String(c.id) === courseId);
+                                                    if (!course) return true;
+                                                    if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
+                                                    const isLab = isLabCourse(newClassData.courseId);
+                                                    return isLab ? room.type === "Lab" : room.type === "Theory";
                                                 })
-                                                .map(room => ({
-                                                    value: room.id,
-                                                    label: `${room.room_number} (${room.type === "Theory" ? "Class" : "Laboratory"})`,
-                                                    searchTerms: room.room_number
-                                                }))}
+                                                    .sort((a, b) => {
+                                                        const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+                                                        const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+                                                        return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                                    })
+                                                    .map(room => ({
+                                                        value: room.id,
+                                                        label: `${room.room_number} (${room.type === "Theory" ? "Class" : "Laboratory"})`,
+                                                        searchTerms: room.room_number
+                                                    }))
+                                            ]}
                                             value={newClassData.roomId}
                                             onValueChange={(val) => setNewClassData({ ...newClassData, roomId: val })}
                                             placeholder="Select Room"

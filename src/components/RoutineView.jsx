@@ -398,10 +398,10 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
         try {
             if (editingId) {
-                await updateRoutineEntry(editingId, formData);
+                await updateRoutineEntry(editingId, { ...formData, room_id: formData.room_id || null });
                 toast.success('Class updated successfully!', { id: loadingToast });
             } else {
-                await addRoutineEntry(formData);
+                await addRoutineEntry({ ...formData, room_id: formData.room_id || null });
                 toast.success('Class added successfully!', { id: loadingToast });
             }
             await fetchData();
@@ -1311,25 +1311,28 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Room</label>
                                     <SearchableSelect
-                                        options={metadata.rooms.filter(r => {
-                                            if (!formData.course_id) return true;
-                                            const courseId = String(formData.course_id).split("-")[0];
-                                            const course = metadata.courses.find(c => String(c.id) === courseId);
-                                            if (!course) return true;
-                                            if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
-                                            const isLab = isLabCourse(formData.course_id);
-                                            return isLab ? r.type === "Lab" : r.type === "Theory";
-                                        })
-                                        .sort((a, b) => {
-                                            const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
-                                            const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
-                                            return aNum - bNum || a.room_number.localeCompare(b.room_number);
-                                        })
-                                        .map(r => ({
-                                            value: r.id,
-                                            label: `Room ${r.room_number} (${r.type === "Theory" ? "Class" : "Laboratory"})`,
-                                            searchTerms: r.room_number
-                                        }))}
+                                        options={[
+                                            { value: '', label: 'None / TBA' },
+                                            ...metadata.rooms.filter(r => {
+                                                if (!formData.course_id) return true;
+                                                const courseId = String(formData.course_id).split("-")[0];
+                                                const course = metadata.courses.find(c => String(c.id) === courseId);
+                                                if (!course) return true;
+                                                if (course.code === "HUM-1142" || course.code === "Hum-1142") return true;
+                                                const isLab = isLabCourse(formData.course_id);
+                                                return isLab ? r.type === "Lab" : r.type === "Theory";
+                                            })
+                                            .sort((a, b) => {
+                                                const aNum = parseInt(a.room_number.match(/\d+/)?.[0] || 0);
+                                                const bNum = parseInt(b.room_number.match(/\d+/)?.[0] || 0);
+                                                return aNum - bNum || a.room_number.localeCompare(b.room_number);
+                                            })
+                                            .map(r => ({
+                                                value: r.id,
+                                                label: `Room ${r.room_number} (${r.type === "Theory" ? "Class" : "Laboratory"})`,
+                                                searchTerms: r.room_number
+                                            }))
+                                        ]}
                                         value={formData.room_id}
                                         onValueChange={(val) => setFormData({ ...formData, room_id: val })}
                                         placeholder="Select Room"

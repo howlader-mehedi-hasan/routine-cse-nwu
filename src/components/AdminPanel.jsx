@@ -126,7 +126,8 @@ const AdminPanel = () => {
 
                 const combinedBatchForm = {
                     ...batchForm,
-                    name: batchName
+                    name: batchName,
+                    default_room_id: batchForm.default_room_id || null
                 };
                 editingId
                     ? await updateBatch(editingId, combinedBatchForm)
@@ -153,7 +154,7 @@ const AdminPanel = () => {
             const nameParts = batchName.split(' ');
             const year = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : '1st Year';
             const semester = nameParts.length >= 4 ? `${nameParts[2]} ${nameParts[3]}` : '1st Sem';
-            setBatchForm({ ...item, year, semester });
+            setBatchForm({ ...item, year, semester, default_room_id: item.default_room_id || '' });
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -171,7 +172,7 @@ const AdminPanel = () => {
             const nameParts = batchName.split(' ');
             const year = nameParts.length >= 2 ? `${nameParts[0]} ${nameParts[1]}` : '1st Year';
             const semester = nameParts.length >= 4 ? `${nameParts[2]} ${nameParts[3]}` : '1st Sem';
-            setBatchForm({ ...rest, year, semester });
+            setBatchForm({ ...rest, year, semester, default_room_id: rest.default_room_id || '' });
         }
         window.scrollTo({ top: 0, behavior: 'smooth' });
         toast('Data copied to form. Modify and Save.', { icon: '📋' });
