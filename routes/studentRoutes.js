@@ -1,9 +1,9 @@
 import express from 'express';
 import { getStudents } from '../controllers/studentController.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', getStudents);
+router.get('/', protect, getStudents);
 
 export default router;
