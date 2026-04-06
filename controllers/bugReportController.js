@@ -1,4 +1,5 @@
 import dbRepository from '../repositories/dbRepository.js';
+import { logActivity } from './auditLogController.js';
 
 export const createBugReport = async (req, res) => {
     try {
@@ -16,6 +17,13 @@ export const createBugReport = async (req, res) => {
             description,
             status: 'open'
         });
+
+        await logActivity(
+            userId, 
+            req.user?.fullName || req.user?.username || 'User', 
+            'Bug Report', 
+            `Submitted new bug report: ${title}.`
+        );
 
         res.status(201).json({ success: true, message: 'Bug report created', data: newReport });
     } catch (error) {
@@ -82,6 +90,16 @@ export const updateBugReportStatus = async (req, res) => {
         }
 
         const updated = await dbRepository.update('bug_reports', id, { status, updated_at: new Date().toISOString() });
+        
+        if (updated) {
+            await logActivity(
+                req.user.id, 
+                req.user.fullName || req.user.username, 
+                'Bug Report Update', 
+                `Updated status of bug report #${id} to: ${status}.`
+            );
+        }
+
         res.json({ success: true, data: updated });
     } catch (error) {
         console.error('Error updating status:', error);

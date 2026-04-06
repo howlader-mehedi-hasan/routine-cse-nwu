@@ -316,13 +316,18 @@ const ActivityLogs = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${log.activityType.includes('Delete') || log.activityType.includes('Clear')
+                                            <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${
+                                                log.activityType.includes('Delete') || log.activityType.includes('Clear') || log.activityType.includes('Reject')
                                                 ? 'bg-red-500/10 text-red-500'
-                                                : log.activityType.includes('Create') || log.activityType.includes('Add')
+                                                : log.activityType.includes('Create') || log.activityType.includes('Add') || log.activityType.includes('Success') || log.activityType.includes('Approve')
                                                     ? 'bg-green-500/10 text-green-500'
-                                                    : log.activityType.includes('Update')
+                                                    : log.activityType.includes('Update') || log.activityType.includes('Edit') || log.activityType.includes('Resolution')
                                                         ? 'bg-blue-500/10 text-blue-500'
-                                                        : 'bg-primary/10 text-primary'
+                                                        : log.activityType.includes('Bug Report')
+                                                            ? 'bg-amber-500/10 text-amber-500'
+                                                            : log.activityType.includes('User Management') || log.activityType.includes('Login')
+                                                                ? 'bg-indigo-500/10 text-indigo-500'
+                                                                : 'bg-primary/10 text-primary'
                                                 }`}>
                                                 {log.activityType}
                                             </span>

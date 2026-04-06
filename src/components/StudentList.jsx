@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getStudents } from '../services/api';
-import { Search, Phone, MessageCircle, User, Edit2 } from 'lucide-react';
+import { getStudents, deleteStudent } from '../services/api';
+import { Search, Phone, MessageCircle, User, Edit2, Trash2, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import EditContactModal from './modals/EditContactModal';
@@ -15,8 +15,9 @@ const StudentList = () => {
     const [showCR, setShowCR] = useState(true);
     const [batchFilter, setBatchFilter] = useState('');
     const [sectionFilter, setSectionFilter] = useState('');
-    const { user } = useAuth();
+    const { user, hasPermission } = useAuth();
     const [editingStudent, setEditingStudent] = useState(null);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const isAdmin = user?.role === 'Admin' || user?.role === 'Super Admin';
     const isCR = user?.role === 'CR/ACR';
 
@@ -32,6 +33,18 @@ const StudentList = () => {
             console.error("Error fetching students:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDelete = async (student) => {
+        if (!window.confirm(`Are you sure you want to delete student "${student.name}"?`)) return;
+        try {
+            await deleteStudent(student.id);
+            toast.success('Student deleted successfully');
+            fetchStudents();
+        } catch (error) {
+            console.error("Delete error:", error);
+            toast.error(error.response?.data?.message || 'Failed to delete student');
         }
     };
 
@@ -79,15 +92,25 @@ const StudentList = () => {
                         <p className="text-muted-foreground mt-1 text-sm">Contact list of students and CR/ACRs.</p>
                     </div>
 
-                    <div className="relative w-full md:w-72">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search by name, ID, or email..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
-                        />
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <div className="relative w-full md:w-72">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <input
+                                type="text"
+                                placeholder="Search by name, ID, or email..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 pr-4 py-2 w-full text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-shadow"
+                            />
+                        </div>
+                        {(isAdmin || isCR) && (
+                            <button
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-sm"
+                            >
+                                <Plus className="w-4 h-4" /> Add Student
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -160,13 +183,24 @@ const StudentList = () => {
                                                 <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                                             </div>
                                             {(isAdmin || (isCR && user.section === item.section)) && (
-                                                <button
-                                                    onClick={() => setEditingStudent(item)}
-                                                    className="p-2 h-fit bg-muted hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-muted-foreground hover:text-indigo-600 transition-colors rounded-lg"
-                                                    title="Edit Student"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={() => setEditingStudent(item)}
+                                                        className="p-2 h-fit bg-muted hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-muted-foreground hover:text-indigo-600 transition-colors rounded-lg"
+                                                        title="Edit Student"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    {isAdmin && (
+                                                        <button
+                                                            onClick={() => handleDelete(item)}
+                                                            className="p-2 h-fit bg-muted hover:bg-red-100 dark:hover:bg-red-900/40 text-muted-foreground hover:text-red-600 transition-colors rounded-lg"
+                                                            title="Delete Student"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                         <span className="text-xs font-medium px-2 py-1 rounded bg-muted text-muted-foreground">
@@ -224,6 +258,14 @@ const StudentList = () => {
                 isOpen={!!editingStudent} 
                 onClose={() => setEditingStudent(null)} 
                 data={editingStudent} 
+                type="student" 
+                onUpdate={fetchStudents} 
+            />
+
+            <EditContactModal 
+                isOpen={isAddModalOpen} 
+                onClose={() => setIsAddModalOpen(false)} 
+                data={null} 
                 type="student" 
                 onUpdate={fetchStudents} 
             />

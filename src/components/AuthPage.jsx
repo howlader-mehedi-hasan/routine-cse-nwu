@@ -123,7 +123,7 @@ export default function AuthPage() {
                             <input
                                 type="text"
                                 required
-                                className="w-full px-3 py-2 border rounded-md"
+                                className="w-full px-3 py-2 border rounded-md bg-background"
                                 value={formData.username}
                                 onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                             />
@@ -132,28 +132,31 @@ export default function AuthPage() {
                         {!isLogin && (
                             <>
                                 <div>
-                                    <label className="text-sm font-medium">Full Name (Optional)</label>
+                                    <label className="text-sm font-medium">Full Name <span className="text-red-500">*</span></label>
                                     <input
                                         type="text"
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        required
+                                        className="w-full px-3 py-2 border rounded-md bg-background"
                                         value={formData.fullName}
                                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Mobile Number (Optional)</label>
+                                    <label className="text-sm font-medium">Mobile Number <span className="text-red-500">*</span></label>
                                     <input
                                         type="tel"
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        required
+                                        className="w-full px-3 py-2 border rounded-md bg-background"
                                         value={formData.mobileNumber}
                                         onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-sm font-medium">Email Address (Optional)</label>
+                                    <label className="text-sm font-medium">Email Address <span className="text-red-500">*</span></label>
                                     <input
                                         type="email"
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        required
+                                        className="w-full px-3 py-2 border rounded-md bg-background"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     />
@@ -161,7 +164,7 @@ export default function AuthPage() {
                                 <div>
                                     <label className="text-sm font-medium">Requested Account Type</label>
                                     <select
-                                        className="w-full px-3 py-2 border rounded-md bg-transparent"
+                                        className="w-full px-3 py-2 border rounded-md bg-background"
                                         value={formData.role}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                                     >
@@ -172,7 +175,7 @@ export default function AuthPage() {
                                     <div>
                                         <label className="text-sm font-medium">Select Faculty Profile (Optional)</label>
                                         <select
-                                            className="w-full px-3 py-2 border rounded-md bg-transparent"
+                                            className="w-full px-3 py-2 border rounded-md bg-background"
                                             value={formData.facultyId}
                                             onChange={(e) => setFormData({ ...formData, facultyId: e.target.value })}
                                         >
@@ -191,7 +194,7 @@ export default function AuthPage() {
                                                 required
                                                 pattern="\d{11}"
                                                 title="Student ID must be exactly 11 digits"
-                                                className="w-full px-3 py-2 border rounded-md"
+                                                className="w-full px-3 py-2 border rounded-md bg-background"
                                                 value={formData.studentId}
                                                 onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                                                 placeholder="e.g. 20210202111"
@@ -200,7 +203,7 @@ export default function AuthPage() {
                                         <div>
                                             <label className="text-sm font-medium">Section / Batch (Optional)</label>
                                             <select
-                                                className="w-full px-3 py-2 border rounded-md bg-transparent"
+                                                className="w-full px-3 py-2 border rounded-md bg-background"
                                                 value={formData.section}
                                                 onChange={(e) => setFormData({ ...formData, section: e.target.value })}
                                             >
@@ -219,7 +222,7 @@ export default function AuthPage() {
                             <input
                                 type="password"
                                 required
-                                className="w-full px-3 py-2 border rounded-md"
+                                className="w-full px-3 py-2 border rounded-md bg-background"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             />

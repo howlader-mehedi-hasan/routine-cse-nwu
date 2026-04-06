@@ -51,8 +51,8 @@ export const register = async (req, res) => {
     try {
         const { username, email, password, role, fullName, mobileNumber, section, facultyId, studentId, batchName, sectionName } = req.body;
         
-        if (!username || !password) {
-            return res.status(400).json({ message: 'Username and Password are required' });
+        if (!username || !password || !fullName || !mobileNumber || !email) {
+            return res.status(400).json({ message: 'Full Name, Mobile Number, Email, Username, and Password are required' });
         }
 
         const existingUser = await dbRepository.findOne('users', 'username', username);
@@ -211,6 +211,17 @@ export const updateUserStatus = async (req, res) => {
         if (role) updates.role = role;
 
         const updated = await dbRepository.update('users', id, updates);
+        
+        if (updated) {
+            const action = status ? `Status Update: ${status}` : `Role Update: ${role}`;
+            await logActivity(
+                req.user.id, 
+                req.user.fullName || req.user.username, 
+                'User Management', 
+                `Updated user ${updated.username} (${updated.full_name}): ${action}.`
+            );
+        }
+
         res.json(mapUser(updated));
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -344,6 +355,16 @@ export const updateUser = async (req, res) => {
         const mappedUpdates = mapToSupabase(data);
         const updated = await dbRepository.update('users', id, mappedUpdates);
         
+        if (updated) {
+            const isSelf = String(req.user.id) === String(id);
+            await logActivity(
+                req.user.id, 
+                req.user.fullName || req.user.username, 
+                'Profile Update', 
+                `${isSelf ? 'Updated own profile' : `Updated profile for ${updated.username}`}.`
+            );
+        }
+        
         // Sync to student_management if the user is a student/cr/acr
         if (updated && ['Student', 'CR/ACR'].includes(updated.role)) {
             let studentEntry = await dbRepository.findOne('student_management', 'user_id', updated.id);
@@ -414,6 +435,13 @@ export const changeUserPassword = async (req, res) => {
             encrypted_password: encryptedPassword 
         });
 
+        await logActivity(
+            req.user.id, 
+            req.user.fullName || req.user.username, 
+            'Password Change', 
+            `${String(req.user.id) === String(id) ? 'Changed own password' : `Changed password for user ${user.username}`}.`
+        );
+
         res.json({ message: 'Password updated successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
@@ -454,6 +482,14 @@ export const resolveNameChange = async (req, res) => {
         }
         
         await dbRepository.update('users', id, updates);
+
+        await logActivity(
+            req.user.id, 
+            req.user.fullName || req.user.username, 
+            'Name Change Resolution', 
+            `${action === 'approve' ? 'Approved' : 'Rejected'} name change request for user ${user.username} (Requested: ${user.pending_full_name}).`
+        );
+
         res.json({ message: `Name change ${action}d successfully` });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
