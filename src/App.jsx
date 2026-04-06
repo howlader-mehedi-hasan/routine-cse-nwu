@@ -14,6 +14,7 @@ import PasswordSettings from './components/PasswordSettings';
 import NameChangeSettings from './components/NameChangeSettings';
 import ActivityLogs from './components/ActivityLogs';
 import About from './components/About';
+import BugReportPage from './components/BugReportPage';
 import SettingsLayout from './components/layout/SettingsLayout';
 import { ThemeProvider } from './components/ui/ThemeProvider';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -131,6 +132,13 @@ function AppRoutes() {
           <DashboardLayout><SettingsLayout><ActivityLogs /></SettingsLayout></DashboardLayout>
         </ProtectedRoute>
       } />
+
+      <Route path="/bug-reports" element={
+        <ProtectedRoute>
+          <DashboardLayout><BugReportPage /></DashboardLayout>
+        </ProtectedRoute>
+      } />
+
       <Route path="/about" element={<DashboardLayout><About /></DashboardLayout>} />
     </Routes>
   );

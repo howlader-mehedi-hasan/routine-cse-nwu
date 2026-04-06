@@ -14,6 +14,7 @@ const Footer = () => {
 
     const quickLinks = [
         { name: 'About Project', url: '/about', icon: <BookOpen className="w-4 h-4" />, internal: true },
+        { name: 'Bug Report', url: '/bug-reports', icon: <Code2 className="w-4 h-4" />, internal: true },
         { name: 'NWU Official', url: 'https://nwu.ac.bd/', icon: <Globe className="w-4 h-4" /> },
         { name: 'Academic Portal', url: 'https://academic.nwu.ac.bd/', icon: <BookOpen className="w-4 h-4" /> },
         { name: 'Study Resource', url: 'https://study-hmh.vercel.app/', icon: <ExternalLink className="w-4 h-4" /> },

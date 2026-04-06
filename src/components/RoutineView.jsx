@@ -108,6 +108,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedFacultyList, setSelectedFacultyList] = useState([]);
     const [selectedCRList, setSelectedCRList] = useState([]);
+    const [contactSmartDefaults, setContactSmartDefaults] = useState(false);
     const [activeBatchInfo, setActiveBatchInfo] = useState({ id: '', name: '', section: '' });
 
     const defaultPdfSettings = {
@@ -419,6 +420,13 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             setSelectedCRList(crList);
             setShowContactModal(true);
         }
+    };
+
+    const getContactDefaultTab = () => {
+        if (!contactSmartDefaults) return undefined;
+        if (viewMode === 'section') return 'faculty';
+        if (viewMode === 'faculty') return 'students';
+        return undefined;
     };
 
     const handleSave = async () => {
@@ -793,9 +801,9 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                         <div
                             className={cn(
                                 "flex flex-col items-center justify-center space-y-1 p-2 rounded-md transition-colors h-full w-full relative group",
-                                canEdit ? "cursor-pointer hover:bg-muted/50" : ""
+                                "cursor-pointer hover:bg-muted/50"
                             )}
-                            onClick={() => canEdit && handleCellClick(currentData)}
+                            onClick={() => handleCellClick(currentData)}
                         >
                             <span className="font-bold text-foreground text-sm">{displayCourses}</span>
                             <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
@@ -1155,8 +1163,6 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                         </div>
                     )}
 
-
-
                     {viewMode === 'faculty' && (
                         <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">Faculty:</span>
@@ -1170,6 +1176,28 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                     <option key={f.id} value={f.id}>{f.name} ({f.initials})</option>
                                 ))}
                             </Select>
+                        </div>
+                    )}
+
+                    {/* Smart Defaults Toggle */}
+                    {(viewMode === 'section' || viewMode === 'faculty') && (
+                        <div className="flex items-center gap-2 px-3 border-l border-border ml-2">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground whitespace-nowrap hidden lg:inline">Smart Contacts:</span>
+                            <button
+                                onClick={() => setContactSmartDefaults(!contactSmartDefaults)}
+                                className={cn(
+                                    "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                                    contactSmartDefaults ? "bg-emerald-500" : "bg-muted-foreground/30"
+                                )}
+                                title="Toggle automatic tab selection for Section/Faculty views"
+                            >
+                                <span
+                                    className={cn(
+                                        "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+                                        contactSmartDefaults ? "translate-x-4" : "translate-x-0.5"
+                                    )}
+                                />
+                            </button>
                         </div>
                     )}
                 </div>
@@ -1576,6 +1604,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 studentList={selectedCRList}
                 batchName={activeBatchInfo.name}
                 sectionName={activeBatchInfo.section}
+                defaultTab={getContactDefaultTab()}
             />
         </div>
     );

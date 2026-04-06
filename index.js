@@ -15,6 +15,7 @@ import settingsRoutes from './routes/settingsRoutes.js';
 import studentRoutes from './routes/studentRoutes.js';
 import auditLogRoutes from './routes/auditLogRoutes.js';
 import backupRoutes from './routes/backupRoutes.js';
+import bugReportRoutes from './routes/bugReportRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -35,6 +36,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/backup', backupRoutes);
+app.use('/api/bug-reports', bugReportRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

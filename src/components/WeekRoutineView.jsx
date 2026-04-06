@@ -64,6 +64,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedFacultyList, setSelectedFacultyList] = useState([]);
     const [selectedCRList, setSelectedCRList] = useState([]);
+    const [contactSmartDefaults, setContactSmartDefaults] = useState(false);
     const [activeBatchInfo, setActiveBatchInfo] = useState({ id: '', name: '', section: '' });
 
     const defaultPdfSettings = {
@@ -365,6 +366,13 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             setSelectedCRList(crList);
             setShowContactModal(true);
         }
+    };
+
+    const getContactDefaultTab = () => {
+        if (!contactSmartDefaults) return undefined;
+        if (viewMode === 'section') return 'faculty';
+        if (viewMode === 'faculty') return 'students';
+        return undefined;
     };
 
 
@@ -960,6 +968,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 studentList={selectedCRList}
                 batchName={activeBatchInfo.name}
                 sectionName={activeBatchInfo.section}
+                defaultTab={getContactDefaultTab()}
             />
 
             {/* Add Class Modal */}
@@ -1025,6 +1034,28 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                             </select>
                                         </div>
                                     </div>
+
+                                    {/* Smart Defaults Toggle */}
+                                    {(viewMode === 'section' || viewMode === 'faculty') && (
+                                        <div className="flex items-center gap-2 px-3 border-l border-border ml-2">
+                                            <span className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground whitespace-nowrap hidden lg:inline">Smart Contacts:</span>
+                                            <button
+                                                onClick={() => setContactSmartDefaults(!contactSmartDefaults)}
+                                                className={cn(
+                                                    "relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-indigo-500",
+                                                    contactSmartDefaults ? "bg-emerald-500" : "bg-muted-foreground/30"
+                                                )}
+                                                title="Toggle automatic tab selection for Section/Faculty views"
+                                            >
+                                                <span
+                                                    className={cn(
+                                                        "inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform",
+                                                        contactSmartDefaults ? "translate-x-4" : "translate-x-0.5"
+                                                    )}
+                                                />
+                                            </button>
+                                        </div>
+                                    )}
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Course</label>
                                         <select

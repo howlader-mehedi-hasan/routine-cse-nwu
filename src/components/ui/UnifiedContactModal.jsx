@@ -10,21 +10,26 @@ const UnifiedContactModal = ({
     facultyList = [], 
     studentList = [], 
     batchName, 
-    sectionName 
+    sectionName,
+    defaultTab
 }) => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('faculty');
 
     useEffect(() => {
         if (isOpen && user) {
-            // Default tab logic based on user role
-            if (user.role === 'Faculty' || user.faculty_id) {
-                setActiveTab('students');
+            if (defaultTab) {
+                setActiveTab(defaultTab);
             } else {
-                setActiveTab('faculty');
+                // Default tab logic based on user role
+                if (user.role === 'Faculty' || user.faculty_id) {
+                    setActiveTab('students');
+                } else {
+                    setActiveTab('faculty');
+                }
             }
         }
-    }, [isOpen, user]);
+    }, [isOpen, user, defaultTab]);
 
     if (!isOpen) return null;
 

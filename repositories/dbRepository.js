@@ -87,18 +87,24 @@ class DBRepository {
     }
 
     // Generic Create
-    async create(collectionName, item) {
-        const { data, error } = await this.supabase
-            .from(collectionName)
-            .insert(item)
+    async create(table, data) {
+        const { data: result, error } = await this.supabase
+            .from(table)
+            .insert(data)
             .select()
             .single();
-        
+
         if (error) {
-            console.error(`Error creating in ${collectionName}:`, error);
-            return null;
+            console.error(`Error creating in ${table}:`, {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code,
+                inputData: data
+            });
+            throw error;
         }
-        return data;
+        return result;
     }
 
     // Generic Update
@@ -281,6 +287,26 @@ class DBRepository {
             throw error;
         }
         return data;
+    }
+    // --- General Media Storage ---
+    async uploadMedia(bucket, path, fileBuffer, contentType) {
+        const { data, error } = await this.supabase.storage
+            .from(bucket)
+            .upload(path, fileBuffer, {
+                contentType: contentType,
+                upsert: true
+            });
+        
+        if (error) {
+            console.error(`Error uploading media to ${bucket}/${path}:`, error);
+            throw error;
+        }
+        return data;
+    }
+
+    getMediaPublicUrl(bucket, path) {
+        const { data } = this.supabase.storage.from(bucket).getPublicUrl(path);
+        return data.publicUrl;
     }
 }
 

@@ -47,6 +47,23 @@ export const clearRoutine = () => api.delete('/routine/clear');
 export const exportRoutine = () => api.get('/routine/export', { responseType: 'blob' });
 export const importRoutine = (data) => api.post('/routine/import', data);
 
+export const exportCloudBackupsAsZip = async () => {
+    return await api.get('/backup/export-cloud-zip', {
+        responseType: 'blob' // Important for downloading zip file
+    });
+};
+
+// --- Bug Reports ---
+export const getBugReports = () => api.get('/bug-reports');
+export const createBugReport = (data) => api.post('/bug-reports', data);
+export const updateBugReportStatus = (id, status) => api.patch(`/bug-reports/${id}/status`, { status });
+export const getBugMessages = (reportId) => api.get(`/bug-reports/${reportId}/messages`);
+export const addBugMessage = (reportId, formData) => api.post(`/bug-reports/${reportId}/messages`, formData, {
+    headers: {
+        'Content-Type': 'multipart/form-data'
+    }
+});
+
 export const exportSystemBackup = () => api.get('/backup/export', { responseType: 'blob' });
 export const importSystemBackup = (data) => api.post('/backup/import', data);
 

@@ -34,3 +34,19 @@ in side the student contact list there will 2 checkboxs to filter cr/acr/student
 
 
 when anyone clicking on a class box there is a option pop-up named contact faculty, there need another option to contact cr/acr of that batch and section. 
+
+When it's time to contact faculty or CRSCR in the contact pop-up in the routine view or week view pages.
+Edit the interface of contact option pop-up.
+There are two options named contact faculty and contact CRACR.
+Those options are showing vertically.
+But I need to show them horizontally just like tab view.
+And by default, all the user can see the contact faculty tab.
+But when the logged in user is a faculty, he can see the contact CRSR tab by default.
+
+In routine view page in the master view section class box clicking and contact faculty pop-up is working properly.
+But when in section view and faculty view, the contact pop-up is not showing.
+fix this
+
+implement something for section view, and faculty view  in routine view page.
+Implement a toggle on off option.
+Regardless of the type of user, when in the section view, clicking on the class box will bring up the option to call the paying teacher by default and when in the faculty view, the option to call the corresponding CISR will come up by default. Leave it as it is now. This option will be implemented through a toggle switch, here there will be a switch toggle, when the toggle is off, it will remain as it is now, but when the toggle is turned on, the above setting will be implemented.
