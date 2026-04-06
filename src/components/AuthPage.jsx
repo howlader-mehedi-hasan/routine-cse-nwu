@@ -15,7 +15,8 @@ export default function AuthPage() {
         fullName: '',
         mobileNumber: '',
         section: '',
-        facultyId: ''
+        facultyId: '',
+        studentId: ''
     });
     const { login, register, api } = useAuth();
     const navigate = useNavigate();
@@ -68,13 +69,30 @@ export default function AuthPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!isLogin && ['Student', 'CR/ACR'].includes(formData.role)) {
+            if (!/^\d{11}$/.test(formData.studentId)) {
+                toast.error('Student ID must be exactly 11 digits');
+                return;
+            }
+        }
+
         try {
             if (isLogin) {
                 await login(formData.username, formData.password);
                 toast.success('Logged in successfully');
                 navigate('/');
             } else {
-                const res = await register(formData);
+                let enrichedData = { ...formData };
+                if (['Student', 'CR/ACR'].includes(formData.role) && formData.section) {
+                    const selectedBatch = batches.find(b => b.id.toString() === formData.section);
+                    if (selectedBatch) {
+                        enrichedData.batchName = selectedBatch.name;
+                        enrichedData.sectionName = selectedBatch.section;
+                    }
+                }
+
+                const res = await register(enrichedData);
                 if (res.status === 'pending') {
                     toast.success('Registration successful! Please wait for a Super Admin to approve your account.');
                     setIsLogin(true); // Switch back to login
@@ -165,18 +183,33 @@ export default function AuthPage() {
                                     </div>
                                 )}
                                 {['Student', 'CR/ACR'].includes(formData.role) && (
-                                    <div>
-                                        <label className="text-sm font-medium">Section / Batch (Optional)</label>
-                                        <select
-                                            className="w-full px-3 py-2 border rounded-md bg-transparent"
-                                            value={formData.section}
-                                            onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                                        >
-                                            <option value="">None / Not Specified</option>
-                                            {batches.length === 0 && <option value="" disabled>No sections available</option>}
-                                            {batches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} (Section {b.section})</option>)}
-                                        </select>
-                                    </div>
+                                    <>
+                                        <div>
+                                            <label className="text-sm font-medium">11-Digit Student ID <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                required
+                                                pattern="\d{11}"
+                                                title="Student ID must be exactly 11 digits"
+                                                className="w-full px-3 py-2 border rounded-md"
+                                                value={formData.studentId}
+                                                onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                                                placeholder="e.g. 20210202111"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-sm font-medium">Section / Batch (Optional)</label>
+                                            <select
+                                                className="w-full px-3 py-2 border rounded-md bg-transparent"
+                                                value={formData.section}
+                                                onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                                            >
+                                                <option value="">None / Not Specified</option>
+                                                {batches.length === 0 && <option value="" disabled>No sections available</option>}
+                                                {batches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} (Section {b.section})</option>)}
+                                            </select>
+                                        </div>
+                                    </>
                                 )}
                             </>
                         )}

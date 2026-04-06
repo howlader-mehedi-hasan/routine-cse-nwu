@@ -50,6 +50,21 @@ export const update = async (req, res) => {
         const updated = await dbRepository.update(COLLECTION, id, updates);
         if (updated) {
             logActivity(req.user.id, req.user.username, 'Update Faculty', `Updated faculty: ${updated.name} (ID: ${id}).`);
+            
+            // Sync back to users table if linked via faculty_id
+            const existingUser = await dbRepository.findOne('users', 'faculty_id', id);
+            if (existingUser) {
+                const userUpdates = {
+                    full_name: updated.name,
+                    email: updated.email,
+                    mobile_number: updated.phone
+                };
+                // Remove undefined/null
+                Object.keys(userUpdates).forEach(key => (userUpdates[key] === undefined || userUpdates[key] === null) && delete userUpdates[key]);
+                
+                await dbRepository.update('users', existingUser.id, userUpdates);
+            }
+            
             res.json(updated);
         } else {
             res.status(404).json({ message: 'Faculty not found' });

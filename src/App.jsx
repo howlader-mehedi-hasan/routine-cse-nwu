@@ -4,7 +4,7 @@ import DashboardLayout from './components/layout/DashboardLayout';
 import RoutineView from './components/RoutineView';
 import WeekRoutineView from './components/WeekRoutineView';
 import AdminPanel from './components/AdminPanel';
-import FacultyList from './components/FacultyList';
+import ContactPage from './components/ContactPage';
 import AuthPage from './components/AuthPage';
 import UserManagement from './components/UserManagement';
 import UserDashboard from './components/UserDashboard';
@@ -76,7 +76,7 @@ function AppRoutes() {
 
       <Route path="/" element={<DashboardLayout><RoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={handleToggleOvertime} /></DashboardLayout>} />
       <Route path="/week-routine" element={<DashboardLayout fullWidth={true}><WeekRoutineView overtimeVisibility={overtimeVisibility} setOvertimeVisibility={handleToggleOvertime} /></DashboardLayout>} />
-      <Route path="/faculty" element={<DashboardLayout><FacultyList /></DashboardLayout>} />
+      <Route path="/contact" element={<DashboardLayout><ContactPage /></DashboardLayout>} />
 
       <Route path="/dashboard" element={
         <ProtectedRoute>

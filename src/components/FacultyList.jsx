@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { getFaculty } from '../services/api';
-import { Search, Phone, MessageCircle, User } from 'lucide-react';
+import { Search, Phone, MessageCircle, User, Edit2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import EditContactModal from './modals/EditContactModal';
 
 const FacultyList = () => {
     const [faculty, setFaculty] = useState([]);
@@ -10,6 +12,9 @@ const FacultyList = () => {
     const [showPermanent, setShowPermanent] = useState(true);
     const [showGuest, setShowGuest] = useState(true);
     const [showAdjunct, setShowAdjunct] = useState(true);
+    const { user } = useAuth();
+    const [editingFaculty, setEditingFaculty] = useState(null);
+    const isAdmin = user?.role === 'Admin' || user?.role === 'Super Admin';
 
     useEffect(() => {
         fetchFaculty();
@@ -120,8 +125,19 @@ const FacultyList = () => {
                             >
                                 <div className="p-6 flex-1">
                                     <div className="flex items-start justify-between mb-4">
-                                        <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
-                                            <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                        <div className="flex gap-3">
+                                            <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-full">
+                                                <User className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                            </div>
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={() => setEditingFaculty(item)}
+                                                    className="p-2 h-fit bg-muted hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-muted-foreground hover:text-indigo-600 transition-colors rounded-lg"
+                                                    title="Edit Faculty"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
                                         <span className="text-xs font-medium px-2 py-1 rounded bg-muted text-muted-foreground">
                                             {item.initials}
@@ -168,6 +184,14 @@ const FacultyList = () => {
                     </AnimatePresence>
                 </div>
             )}
+
+            <EditContactModal 
+                isOpen={!!editingFaculty} 
+                onClose={() => setEditingFaculty(null)} 
+                data={editingFaculty} 
+                type="faculty" 
+                onUpdate={fetchFaculty} 
+            />
         </div>
     );
 };

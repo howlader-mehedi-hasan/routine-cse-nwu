@@ -23,7 +23,7 @@ const Navbar = () => {
     let menuItems = [
         { path: '/', label: 'Routine View', icon: <BoxIcon size={18} /> },
         { path: '/week-routine', label: 'Week View', icon: <CalendarClock size={18} /> },
-        { path: '/faculty', label: 'Faculty', icon: <Users size={18} /> },
+        { path: '/contact', label: 'Contact', icon: <Users size={18} /> },
     ];
 
     let settingItems = [];

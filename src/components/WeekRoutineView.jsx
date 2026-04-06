@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getSettings, updateSettings, exportRoutine, importRoutine } from '../services/api';
+import { getRoutine, getRooms, getFaculty, getBatches, getCourses, updateBatch, addRoutineEntry, updateRoutineEntry, deleteRoutineEntry, clearRoutine, getSettings, updateSettings, exportRoutine, importRoutine, getStudents } from '../services/api';
 import { generateWeeklyRoutinePDF } from '../utils/pdfGenerator';
 import { Download, Check, X, MapPin, Plus, Edit2, Trash, Trash2, Upload, HardDriveDownload, Cloud, Search } from 'lucide-react';
 import { Button } from './ui/Button';
@@ -11,14 +11,15 @@ import SettingsModal from './SettingsModal';
 import PdfDownloadModal from './PdfDownloadModal';
 import { Settings, Settings2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import FacultyContactModal from './ui/FacultyContactModal';
+import UnifiedContactModal from './ui/UnifiedContactModal';
+import SelectionModal from './ui/SelectionModal';
 import CloudRoutineBackupModal from './CloudRoutineBackupModal';
 
 const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
     const { user, hasPermission } = useAuth();
     const canEdit = hasPermission('edit_week_routine');
     const [routine, setRoutine] = useState([]);
-    const [metadata, setMetadata] = useState({ rooms: [], faculty: [], batches: [], courses: [] });
+    const [metadata, setMetadata] = useState({ rooms: [], faculty: [], batches: [], courses: [], students: [] });
     const [loading, setLoading] = useState(true);
     // Removed local overtimeVisibility state, now using props
 
@@ -59,9 +60,11 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         daily_overrides: {}
     });
 
-    // Faculty contact modal state
+    // Unified contact modal state
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedFacultyList, setSelectedFacultyList] = useState([]);
+    const [selectedCRList, setSelectedCRList] = useState([]);
+    const [activeBatchInfo, setActiveBatchInfo] = useState({ id: '', name: '', section: '' });
 
     const defaultPdfSettings = {
         universityName: "North Western University",
@@ -86,21 +89,33 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
 
     const fetchData = async () => {
         try {
-            const [routineRes, roomsRes, facultyRes, batchesRes, coursesRes, settingsRes, pdfSettingsRes] = await Promise.all([
+            const results = await Promise.all([
                 getRoutine(),
                 getRooms(),
                 getFaculty(),
                 getBatches(),
                 getCourses(),
                 getSettings('app_settings'),
-                getSettings('pdf_settings_week')
+                getSettings('pdf_settings_week'),
+                getStudents()
             ]);
+
+            const routineRes = results[0];
+            const roomsRes = results[1];
+            const facultyRes = results[2];
+            const batchesRes = results[3];
+            const coursesRes = results[4];
+            const settingsRes = results[5];
+            const pdfSettingsRes = results[6];
+            const studentsRes = results[7];
+
             setRoutine(routineRes.data);
             setMetadata({
                 rooms: roomsRes.data,
                 faculty: facultyRes.data,
                 batches: batchesRes.data,
-                courses: coursesRes.data
+                courses: coursesRes.data,
+                students: studentsRes?.data || []
             });
             if (settingsRes.data.success) {
                 const settingsData = settingsRes.data.data;
@@ -319,15 +334,39 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         setIsAddModalOpen(true);
     };
 
-    const handleCellClick = (currentData) => {
+    const handleCellClick = (currentData, batchId) => {
         if (!currentData || currentData.length === 0) return;
 
-        const facultyIds = currentData.map(d => String(d.facultyId));
-        const selectFaculty = metadata.faculty.filter(f => facultyIds.includes(String(f.id)));
+        // If multiple classes, handle selection
+        if (currentData.length > 1) {
+            setSelectionModalData({ classes: currentData, batchId, mode: 'contact' });
+            return;
+        }
 
-        setSelectedFacultyList(selectFaculty);
-        setShowContactModal(true);
+        const batch = metadata.batches.find(b => b.id === batchId);
+        
+        if (batch) {
+            setActiveBatchInfo({
+                id: batch.id,
+                name: batch.name,
+                section: batch.section
+            });
+            
+            const facultyIds = currentData.map(d => String(d.facultyId));
+            const selectFaculty = metadata.faculty.filter(f => facultyIds.includes(String(f.id)));
+            
+            const crList = (metadata.students || []).filter(s => 
+                s.batch === batch.name && 
+                s.section === batch.section && 
+                s.account_type === 'CR/ACR'
+            );
+
+            setSelectedFacultyList(selectFaculty);
+            setSelectedCRList(crList);
+            setShowContactModal(true);
+        }
     };
+
 
     const handleSaveClass = async () => {
         if (!newClassData.courseId || !newClassData.facultyId) {
@@ -831,9 +870,9 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                                         <div
                                                             className={cn(
                                                                 "flex flex-col items-center justify-center space-y-0.5 p-1 rounded-sm transition-colors h-full w-full relative group",
-                                                                "bg-card hover:bg-muted/50 cursor-pointer"
+                                                                "cursor-pointer hover:bg-muted/50"
                                                             )}
-                                                            onClick={() => handleCellClick(currentData)}
+                                                            onClick={() => handleCellClick(currentData, batch.id)}
                                                         >
                                                             <span className="font-bold text-foreground text-[10px] leading-[1.1]">{displayCourses}</span>
                                                             <span className="text-[9px] text-muted-foreground bg-muted px-1 py-0 rounded">
@@ -914,10 +953,13 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 </div>
             </div>
 
-            <FacultyContactModal
+            <UnifiedContactModal
                 isOpen={showContactModal}
                 onClose={() => setShowContactModal(false)}
                 facultyList={selectedFacultyList}
+                studentList={selectedCRList}
+                batchName={activeBatchInfo.name}
+                sectionName={activeBatchInfo.section}
             />
 
             {/* Add Class Modal */}
@@ -1116,48 +1158,21 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 })()}
 
             {/* Selection Modal for Multi-Class Slots */}
-            {
-                selectionModalData && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                        <div className="bg-card w-full max-w-sm rounded-lg shadow-lg border border-border p-6 space-y-4">
-                            <div className="flex justify-between items-center mb-2">
-                                <h3 className="text-lg font-semibold">Select Class to Edit</h3>
-                                <Button variant="ghost" size="icon" onClick={() => setSelectionModalData(null)}>
-                                    <X className="h-4 w-4" />
-                                </Button>
-                            </div>
-                            <div className="space-y-2">
-                                {selectionModalData.classes.map((cls) => (
-                                    <div
-                                        key={cls.id}
-                                        className={cn(
-                                            "flex items-center justify-between p-3 rounded-md border border-border bg-muted/20 transition-colors",
-                                            canEdit ? "hover:bg-muted/40 cursor-pointer" : ""
-                                        )}
-                                        onClick={() => {
-                                            if (!canEdit) return;
-                                            setSelectionModalData(null);
-                                            handleEditClassClick(cls, selectionModalData.batchId);
-                                        }}
-                                    >
-                                        <div>
-                                            <div className="font-bold text-sm">{cls.course}</div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {cls.faculty} {cls.room && cls.room !== 'TBA' ? `| R-${cls.room}` : ''}
-                                            </div>
-                                        </div>
-                                        {canEdit && (
-                                            <div className="p-1.5 rounded-full bg-primary/10 text-primary">
-                                                <Edit2 className="h-3.5 w-3.5" />
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <SelectionModal
+                isOpen={!!selectionModalData}
+                onClose={() => setSelectionModalData(null)}
+                classes={selectionModalData?.classes || []}
+                onSelect={(cls) => {
+                    const mode = selectionModalData.mode;
+                    const bId = selectionModalData.batchId;
+                    setSelectionModalData(null);
+                    if (mode === 'contact') {
+                        handleCellClick([cls], bId);
+                    } else {
+                        handleEditClassClick([cls], bId);
+                    }
+                }}
+            />
 
             {/* Settings Modal */}
             <SettingsModal

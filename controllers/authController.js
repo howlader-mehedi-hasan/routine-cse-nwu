@@ -18,6 +18,7 @@ const mapUser = (user) => {
         permissions: user.permissions || [],
         fullName: user.full_name,
         mobileNumber: user.mobile_number,
+        studentId: user.student_id,
         section: user.section,
         facultyId: user.faculty_id,
         createdAt: user.created_at,
@@ -36,6 +37,7 @@ const mapToSupabase = (data) => {
         permissions: data.permissions,
         full_name: data.fullName,
         mobile_number: data.mobileNumber,
+        student_id: data.studentId,
         section: data.section,
         faculty_id: data.facultyId !== undefined ? (data.facultyId && data.facultyId !== '' ? parseInt(data.facultyId) : null) : undefined,
         encrypted_password: data.encryptedPassword
@@ -47,7 +49,7 @@ const mapToSupabase = (data) => {
 
 export const register = async (req, res) => {
     try {
-        const { username, email, password, role, fullName, mobileNumber, section, facultyId } = req.body;
+        const { username, email, password, role, fullName, mobileNumber, section, facultyId, studentId, batchName, sectionName } = req.body;
         
         if (!username || !password) {
             return res.status(400).json({ message: 'Username and Password are required' });
@@ -88,6 +90,7 @@ export const register = async (req, res) => {
             permissions: [],
             full_name: fullName || '',
             mobile_number: mobileNumber || '',
+            student_id: studentId || '',
             section: section || '',
             faculty_id: facultyId || null
         };
@@ -96,6 +99,18 @@ export const register = async (req, res) => {
 
         if (!created) {
             return res.status(500).json({ message: 'Failed to create user account' });
+        }
+
+        if (['Student', 'CR/ACR'].includes(actualRole) && studentId) {
+            await dbRepository.create('student_management', {
+                student_id: studentId,
+                name: fullName || '',
+                email: email && email.trim() !== '' ? email : null,
+                phone: mobileNumber || '',
+                batch: batchName || '',
+                section: sectionName || '',
+                account_type: actualRole
+            });
         }
 
         if (status === 'pending') {
@@ -204,7 +219,7 @@ export const updateUserStatus = async (req, res) => {
 
 export const createUser = async (req, res) => {
     try {
-        const { username, email, password, role, fullName, mobileNumber, section, facultyId } = req.body;
+        const { username, email, password, role, fullName, mobileNumber, section, facultyId, studentId, batchName, sectionName } = req.body;
         
         if (!username || !password) {
             return res.status(400).json({ message: 'Username and password are required' });
@@ -235,6 +250,7 @@ export const createUser = async (req, res) => {
             permissions: req.body.permissions || [],
             full_name: fullName || '',
             mobile_number: mobileNumber || '',
+            student_id: studentId || '',
             section: section || '',
             faculty_id: facultyId || null
         };
@@ -243,6 +259,18 @@ export const createUser = async (req, res) => {
         
         if (!created) {
             return res.status(500).json({ message: 'Failed to create user account' });
+        }
+
+        if (['Student', 'CR/ACR'].includes(created.role) && studentId) {
+            await dbRepository.create('student_management', {
+                student_id: studentId,
+                name: fullName || '',
+                email: email && email.trim() !== '' ? email : null,
+                phone: mobileNumber || '',
+                batch: batchName || '',
+                section: sectionName || '',
+                account_type: created.role
+            });
         }
 
         await logActivity(req.user.id, req.user.fullName || req.user.username, 'User Created', `Created new user ${created.username} with role ${created.role}.`);
@@ -287,6 +315,9 @@ export const updateUser = async (req, res) => {
             }
             delete data.status;
             delete data.permissions;
+            
+            // Student ID is immutable for self-update (except for Admins)
+            delete data.studentId;
         } else if (!isSelfEdit && isAdminEdit) {
             // Admin/Super Admin editing someone else
             if (req.user.role !== 'Super Admin') {
@@ -312,6 +343,46 @@ export const updateUser = async (req, res) => {
 
         const mappedUpdates = mapToSupabase(data);
         const updated = await dbRepository.update('users', id, mappedUpdates);
+        
+        // Sync to student_management if the user is a student/cr/acr
+        if (updated && ['Student', 'CR/ACR'].includes(updated.role)) {
+            let studentEntry = await dbRepository.findOne('student_management', 'user_id', updated.id);
+            
+            // If not found by user_id, try by student_id as fallback (legacy)
+            if (!studentEntry && updated.student_id) {
+                studentEntry = await dbRepository.findOne('student_management', 'student_id', updated.student_id);
+                // If found by student_id, update its user_id for future sync
+                if (studentEntry) {
+                    await dbRepository.update('student_management', studentEntry.id, { user_id: updated.id });
+                }
+            }
+
+            const studentData = {
+                user_id: updated.id,
+                student_id: updated.student_id,
+                name: updated.full_name,
+                email: updated.email,
+                phone: updated.mobile_number,
+                account_type: updated.role
+            };
+            
+            // Resolve batch/section names
+            if (updated.section) {
+                const batch = await dbRepository.getById('batches', updated.section);
+                if (batch) {
+                    studentData.batch = batch.name;
+                    studentData.section = batch.section;
+                }
+            }
+
+            if (studentEntry) {
+                await dbRepository.update('student_management', studentEntry.id, studentData);
+            } else {
+                // Create entry if it doesn't exist
+                await dbRepository.create('student_management', studentData);
+            }
+        }
+
         res.json(mapUser(updated));
     } catch (error) {
         console.error("UpdateUser Error:", error.message);

@@ -11,6 +11,7 @@ export default function ProfileSettings() {
         email: '', 
         mobileNumber: '', 
         fullName: '', 
+        studentId: '',
         facultyId: null, 
         section: '', 
         role: '' 
@@ -24,6 +25,7 @@ export default function ProfileSettings() {
                 email: user.email,
                 mobileNumber: user.mobileNumber || '',
                 fullName: user.fullName || '',
+                studentId: user.studentId || '',
                 facultyId: user.facultyId || null,
                 section: user.section || '',
                 role: user.role || ''
@@ -138,6 +140,21 @@ export default function ProfileSettings() {
                             onChange={e => setProfileData({ ...profileData, username: e.target.value })}
                         />
                     </div>
+                    {['Student', 'CR/ACR'].includes(profileData.role) && (
+                        <div>
+                            <label className="block text-sm font-medium mb-1">
+                                Student ID {!(user.role === 'Admin' || user.role === 'Super Admin') && <span className="text-xs text-muted-foreground font-normal">(Contact Admin to change)</span>}
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                disabled={!(user.role === 'Admin' || user.role === 'Super Admin')}
+                                className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-blue-500 focus:border-blue-500 ${!(user.role === 'Admin' || user.role === 'Super Admin') ? 'opacity-70 cursor-not-allowed grayscale-[0.5]' : ''}`}
+                                value={profileData.studentId}
+                                onChange={e => setProfileData({ ...profileData, studentId: e.target.value })}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-medium mb-1">Full Name</label>
                         <input
