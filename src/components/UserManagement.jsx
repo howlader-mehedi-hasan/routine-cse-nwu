@@ -670,109 +670,111 @@ export default function UserManagement() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleCreateUser} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Username</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.username}
-                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Email <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="email"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Full Name <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.fullName}
-                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Mobile Number (WhatsApp) <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="tel"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.mobileNumber}
-                                    onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    minLength={6}
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
-                                </label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
-                                    value={formData.role}
-                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                    disabled={currentUser?.role !== 'Super Admin'}
-                                >
-                                    {roles.map(r => <option key={r} value={r}>{r}</option>)}
-                                </select>
-                            </div>
-                            {['Student', 'CR/ACR'].includes(formData.role) && (
+                        <form onSubmit={handleCreateUser}>
+                            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Section / Batch</label>
-                                    <select
-                                        className="w-full px-3 py-2 border rounded-lg bg-background"
-                                        value={formData.section}
-                                        onChange={e => setFormData({ ...formData, section: e.target.value })}
+                                    <label className="block text-sm font-medium mb-1">Username</label>
+                                    <input
+                                        type="text"
                                         required
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.username}
+                                        onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Email <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="email"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Full Name <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.fullName}
+                                        onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Mobile Number (WhatsApp) <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="tel"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.mobileNumber}
+                                        onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Password</label>
+                                    <input
+                                        type="password"
+                                        required
+                                        minLength={6}
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.password}
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
+                                    </label>
+                                    <select
+                                        className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
+                                        value={formData.role}
+                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                        disabled={currentUser?.role !== 'Super Admin'}
                                     >
-                                        {batches.length === 0 && <option value="" disabled>No sections available</option>}
-                                        {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
+                                        {roles.map(r => <option key={r} value={r}>{r}</option>)}
                                     </select>
                                 </div>
-                            )}
-                            {formData.role === 'Faculty' && (
-                                <div className="space-y-2">
-                                    <label className="block text-sm font-medium mb-1">Faculty Profile</label>
-                                    <div className="relative">
-                                        <div className="flex gap-2 mb-2">
-                                            <input
-                                                type="text"
-                                                placeholder="Search faculty..."
-                                                className="flex-grow px-3 py-1.5 text-xs border rounded bg-muted/30 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                                                value={facultySearch}
-                                                onChange={e => setFacultySearch(e.target.value)}
-                                            />
-                                        </div>
+                                {['Student', 'CR/ACR'].includes(formData.role) && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Section / Batch</label>
                                         <select
                                             className="w-full px-3 py-2 border rounded-lg bg-background"
-                                            value={formData.facultyId}
-                                            onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                            value={formData.section}
+                                            onChange={e => setFormData({ ...formData, section: e.target.value })}
+                                            required
                                         >
-                                            <option value="">None / Not Specified</option>
-                                            {filteredFaculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
+                                            {batches.length === 0 && <option value="" disabled>No sections available</option>}
+                                            {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
                                         </select>
                                     </div>
-                                </div>
-                            )}
-                            <div className="pt-4 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 border rounded-lg hover:bg-muted">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Create User</button>
+                                )}
+                                {formData.role === 'Faculty' && (
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium mb-1">Faculty Profile</label>
+                                        <div className="relative">
+                                            <div className="flex gap-2 mb-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Search faculty..."
+                                                    className="flex-grow px-3 py-1.5 text-xs border rounded bg-muted/30 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                                    value={facultySearch}
+                                                    onChange={e => setFacultySearch(e.target.value)}
+                                                />
+                                            </div>
+                                            <select
+                                                className="w-full px-3 py-2 border rounded-lg bg-background"
+                                                value={formData.facultyId}
+                                                onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                            >
+                                                <option value="">None / Not Specified</option>
+                                                {filteredFaculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-6 border-t flex justify-end gap-3 bg-muted/20">
+                                <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 border rounded-lg hover:bg-muted text-sm font-medium">Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">Create User</button>
                             </div>
                         </form>
                     </div>
@@ -789,143 +791,144 @@ export default function UserManagement() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleUpdateUser} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Username</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.username}
-                                    onChange={e => setFormData({ ...formData, username: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Email <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="email"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Full Name <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.fullName}
-                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Mobile Number (WhatsApp) <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
-                                <input
-                                    type="tel"
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.mobileNumber}
-                                    onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Status</label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-lg bg-background"
-                                    value={formData.status}
-                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
-                                >
-                                    <option value="approved">Approved</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
-                                    Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
-                                </label>
-                                <select
-                                    className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
-                                    value={formData.role}
-                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                    disabled={selectedUser?.role === 'Super Admin' || currentUser?.role !== 'Super Admin'}
-                                >
-                                    {roles.map(r => <option key={r} value={r}>{r}</option>)}
-                                </select>
-                                {selectedUser?.role === 'Super Admin' ? (
-                                    <p className="text-xs text-amber-500 mt-1">Super Admin role cannot be changed directly here.</p>
-                                ) : currentUser?.role !== 'Super Admin' ? (
-                                    <p className="text-xs text-muted-foreground mt-1 text-red-400">Only Super Admins can modify user roles.</p>
-                                ) : null}
-                            </div>
-
-                            {['Student', 'CR/ACR'].includes(formData.role) && (
+                        <form onSubmit={handleUpdateUser}>
+                            <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Section / Batch</label>
-                                    <select
-                                        className="w-full px-3 py-2 border rounded-lg bg-background"
-                                        value={formData.section}
-                                        onChange={e => setFormData({ ...formData, section: e.target.value })}
+                                    <label className="block text-sm font-medium mb-1">Username</label>
+                                    <input
+                                        type="text"
                                         required
-                                    >
-                                        {batches.length === 0 && <option value="" disabled>No sections available</option>}
-                                        {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
-                                    </select>
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.username}
+                                        onChange={e => setFormData({ ...formData, username: e.target.value })}
+                                    />
                                 </div>
-                            )}
-                            {formData.role === 'Faculty' && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Faculty Profile</label>
+                                    <label className="block text-sm font-medium mb-1">Email <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="email"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.email}
+                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Full Name <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.fullName}
+                                        onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Mobile Number (WhatsApp) <span className="text-xs text-muted-foreground font-normal">(Optional)</span></label>
+                                    <input
+                                        type="tel"
+                                        className="w-full px-3 py-2 border rounded-lg bg-background"
+                                        value={formData.mobileNumber}
+                                        onChange={e => setFormData({ ...formData, mobileNumber: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1">Status</label>
                                     <select
                                         className="w-full px-3 py-2 border rounded-lg bg-background"
-                                        value={formData.facultyId}
-                                        onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                        value={formData.status}
+                                        onChange={e => setFormData({ ...formData, status: e.target.value })}
                                     >
-                                        <option value="">None / Not Specified</option>
-                                        {faculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
+                                        <option value="approved">Approved</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="rejected">Rejected</option>
                                     </select>
                                 </div>
-                            )}
-
-                            {/* Permissions Section */}
-                            {selectedUser?.role !== 'Super Admin' && selectedUser?.role !== 'Admin' && (
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Permissions</label>
-                                    <div className="space-y-2 mt-2 bg-muted/30 p-3 rounded-lg border">
-                                        {[
-                                            { id: 'edit_routine', label: 'Edit Routine (Day)', desc: '(Can manage classes in day view)' },
-                                            { id: 'edit_week_routine', label: 'Edit Routine (Week)', desc: '(Can manage classes & backups in week view)' },
-                                            { id: 'manage_faculty', label: 'Manage Faculty', desc: '(Can add, edit, or delete faculty)' },
-                                            { id: 'manage_courses', label: 'Manage Courses', desc: '(Can add, edit, or delete courses)' },
-                                            { id: 'manage_rooms', label: 'Manage Rooms', desc: '(Can add, edit, or delete rooms)' },
-                                            { id: 'manage_batches', label: 'Manage Batches', desc: '(Can add, edit, or delete batches)' },
-                                            { id: 'assign_permissions', label: 'Assign Permissions', desc: '(Can manage user roles and permissions)' },
-                                            { id: 'view_activity_logs', label: 'View Activity Logs', desc: '(Can view the system activity log)' },
-                                        ].map(perm => (
-                                            <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
-                                                    checked={formData.permissions.includes(perm.id)}
-                                                    onChange={(e) => {
-                                                        const checked = e.target.checked;
-                                                        setFormData(prev => ({
-                                                            ...prev,
-                                                            permissions: checked
-                                                                ? [...prev.permissions, perm.id]
-                                                                : prev.permissions.filter(p => p !== perm.id)
-                                                        }));
-                                                    }}
-                                                />
-                                                <span className="text-sm select-none">{perm.label} <span className="text-xs text-muted-foreground ml-1">{perm.desc}</span></span>
-                                            </label>
-                                        ))}
-                                    </div>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Role {currentUser?.role !== 'Super Admin' && <span className="text-[10px] text-muted-foreground">(Super Admin only)</span>}
+                                    </label>
+                                    <select
+                                        className="w-full px-3 py-2 border rounded-lg bg-background disabled:opacity-70 disabled:cursor-not-allowed"
+                                        value={formData.role}
+                                        onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                        disabled={selectedUser?.role === 'Super Admin' || currentUser?.role !== 'Super Admin'}
+                                    >
+                                        {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                    {selectedUser?.role === 'Super Admin' ? (
+                                        <p className="text-xs text-amber-500 mt-1">Super Admin role cannot be changed directly here.</p>
+                                    ) : currentUser?.role !== 'Super Admin' ? (
+                                        <p className="text-xs text-muted-foreground mt-1 text-red-400">Only Super Admins can modify user roles.</p>
+                                    ) : null}
                                 </div>
-                            )}
 
-                            <div className="pt-4 flex justify-end gap-3">
-                                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded-lg hover:bg-muted">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Save Changes</button>
+                                {['Student', 'CR/ACR'].includes(formData.role) && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Section / Batch</label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                                            value={formData.section}
+                                            onChange={e => setFormData({ ...formData, section: e.target.value })}
+                                            required
+                                        >
+                                            {batches.length === 0 && <option value="" disabled>No sections available</option>}
+                                            {sortedBatches.map(b => <option key={b.id} value={b.id.toString()}>{b.name} - Section {b.section}</option>)}
+                                        </select>
+                                    </div>
+                                )}
+                                {formData.role === 'Faculty' && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Faculty Profile</label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg bg-background"
+                                            value={formData.facultyId}
+                                            onChange={e => setFormData({ ...formData, facultyId: e.target.value })}
+                                        >
+                                            <option value="">None / Not Specified</option>
+                                            {faculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {/* Permissions Section */}
+                                {selectedUser?.role !== 'Super Admin' && selectedUser?.role !== 'Admin' && (
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Permissions</label>
+                                        <div className="space-y-2 mt-2 bg-muted/30 p-3 rounded-lg border">
+                                            {[
+                                                { id: 'edit_routine', label: 'Edit Routine (Day)', desc: '(Can manage classes in day view)' },
+                                                { id: 'edit_week_routine', label: 'Edit Routine (Week)', desc: '(Can manage classes & backups in week view)' },
+                                                { id: 'manage_faculty', label: 'Manage Faculty', desc: '(Can add, edit, or delete faculty)' },
+                                                { id: 'manage_courses', label: 'Manage Courses', desc: '(Can add, edit, or delete courses)' },
+                                                { id: 'manage_rooms', label: 'Manage Rooms', desc: '(Can add, edit, or delete rooms)' },
+                                                { id: 'manage_batches', label: 'Manage Batches', desc: '(Can add, edit, or delete batches)' },
+                                                { id: 'assign_permissions', label: 'Assign Permissions', desc: '(Can manage user roles and permissions)' },
+                                                { id: 'view_activity_logs', label: 'View Activity Logs', desc: '(Can view the system activity log)' },
+                                            ].map(perm => (
+                                                <label key={perm.id} className="flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 cursor-pointer"
+                                                        checked={formData.permissions.includes(perm.id)}
+                                                        onChange={(e) => {
+                                                            const checked = e.target.checked;
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                permissions: checked
+                                                                    ? [...prev.permissions, perm.id]
+                                                                    : prev.permissions.filter(p => p !== perm.id)
+                                                            }));
+                                                        }}
+                                                    />
+                                                    <span className="text-sm select-none">{perm.label} <span className="text-xs text-muted-foreground ml-1">{perm.desc}</span></span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-6 border-t flex justify-end gap-3 bg-muted/20">
+                                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-4 py-2 border rounded-lg hover:bg-muted text-sm font-medium">Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium transition-colors">Save Changes</button>
                             </div>
                         </form>
                     </div>
