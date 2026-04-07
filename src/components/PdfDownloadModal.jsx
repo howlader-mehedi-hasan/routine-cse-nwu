@@ -29,7 +29,10 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave, isRoutineV
         signatureFontSize: 10,
         bottomSignaturesFontSize: 10,
         ccTitle: "C.C",
-        ccText: ""
+        ccText: "",
+        watermarkText: "",
+        watermarkOpacity: 0.1,
+        watermarkFontSize: 60
     };
 
     const [settings, setSettings] = useState(initialSettings || defaultSettings);
@@ -563,6 +566,53 @@ const PdfDownloadModal = ({ isOpen, onClose, initialSettings, onSave, isRoutineV
                             {(!settings.bottomSignatures || settings.bottomSignatures.length === 0) && (
                                 <p className="text-sm text-muted-foreground text-center py-2">No custom text fields added. Click 'Add Field' to create one.</p>
                             )}
+                        </div>
+                    </div>
+
+                    <hr className="border-border" />
+
+                    {/* Watermark Customization */}
+                    <div className="space-y-4">
+                        <h4 className="font-semibold flex items-center gap-2 text-muted-foreground uppercase text-xs tracking-wider">
+                            <Type className="h-4 w-4" /> Watermark Settings
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Watermark Text</label>
+                                <input
+                                    type="text"
+                                    name="watermarkText"
+                                    value={settings.watermarkText}
+                                    onChange={handleChange}
+                                    placeholder="e.g. DRAFT, CONFIDENTIAL"
+                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Opacity (0.01 - 1.0)</label>
+                                <input
+                                    type="number"
+                                    name="watermarkOpacity"
+                                    value={settings.watermarkOpacity}
+                                    onChange={handleChange}
+                                    min="0.01"
+                                    max="1"
+                                    step="0.01"
+                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1.5">Font Size</label>
+                                <input
+                                    type="number"
+                                    name="watermarkFontSize"
+                                    value={settings.watermarkFontSize}
+                                    onChange={handleChange}
+                                    min="10"
+                                    max="200"
+                                    className="w-full p-2.5 rounded-lg border border-input bg-background text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                                />
+                            </div>
                         </div>
                     </div>
 

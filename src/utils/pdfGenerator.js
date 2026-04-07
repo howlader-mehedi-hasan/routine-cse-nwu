@@ -123,7 +123,7 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
                         // Identify markers
                         const isLabTextMatched = rawText.includes('PDF_LAB');
                         const hasAltMatched = rawText.includes('PDF_ALT');
-                        
+
                         let extraText = '';
                         const extraTextMatch = rawText.match(/EXTRA_TEXT:\s*(.*?)(?:PDF_LAB|PDF_ALT|$)/);
                         if (extraTextMatch) {
@@ -593,6 +593,8 @@ export const generateWeeklyRoutinePDF = (pdfSettings, allFaculty = [], tableSele
             }
         }
 
+        addWatermark(doc, pdfSettings);
+
         const finalFileName = pdfSettings.fileName ?
             (pdfSettings.fileName.endsWith('.pdf') ? pdfSettings.fileName : `${pdfSettings.fileName}.pdf`)
             : `week_routine_${new Date().getTime()}.pdf`;
@@ -638,7 +640,7 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
         const today = new Date();
         const formattedDate = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth() + 1).padStart(2, '0')}-${today.getFullYear()}`;
         doc.setFontSize(10);
-        
+
         // --- Top Left Box: Updated Date ---
         const dateText = `Generated on: ${formattedDate}`;
         const dateTextWidth = doc.getTextWidth(dateText);
@@ -820,6 +822,8 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
             }
         }
 
+        addWatermark(doc, pdfSettings);
+
         const finalFileName = pdfSettings.fileName ?
             (pdfSettings.fileName.endsWith('.pdf') ? pdfSettings.fileName : `${pdfSettings.fileName}.pdf`)
             : `routine_${new Date().getTime()}.pdf`;
@@ -829,5 +833,40 @@ export const generateRoutineViewPDF = (title, subtitle, tableColumn, tableRows, 
     } catch (error) {
         console.error("PDF generation failed:", error);
         toast.error('Failed to generate PDF');
+    }
+};
+
+const addWatermark = (doc, pdfSettings) => {
+    const text = pdfSettings.watermarkText;
+    if (!text || text.trim() === '') return;
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+
+        // Set state for transparency
+        doc.saveGraphicsState();
+        // Check if GState is available (it should be in modern jsPDF)
+        if (doc.GState) {
+            doc.setGState(new doc.GState({ opacity: pdfSettings.watermarkOpacity || 0.1 }));
+        } else {
+            // Fallback for older versions if any
+            doc.setTextColor(200, 200, 200);
+        }
+
+        doc.setFontSize(pdfSettings.watermarkFontSize || 60);
+        doc.setFont(pdfSettings.fontStyle || 'helvetica', 'bold');
+        doc.setTextColor(150, 150, 150);
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        doc.text(text, pageWidth / 1.55, pageHeight / 1.55, {
+            align: 'center',
+            baseline: 'middle',
+            angle: 45
+        });
+
+        doc.restoreGraphicsState();
     }
 };
