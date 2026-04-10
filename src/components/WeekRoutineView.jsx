@@ -60,6 +60,8 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
         daily_overrides: {}
     });
 
+    const viewMode = 'master'; // Fixed: Added missing viewMode for consistency with RoutineView logic
+
     // Unified contact modal state
     const [showContactModal, setShowContactModal] = useState(false);
     const [selectedFacultyList, setSelectedFacultyList] = useState([]);
