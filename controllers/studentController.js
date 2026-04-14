@@ -104,3 +104,63 @@ export const deleteStudent = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+export const migrateSemesters = async (req, res) => {
+    try {
+        const { action } = req.body;
+        if (!['upgrade', 'downgrade'].includes(action)) {
+            return res.status(400).json({ message: 'Invalid action' });
+        }
+
+        const students = await dbRepository.getAll('student_management');
+        if (!students || students.length === 0) {
+            return res.status(404).json({ message: 'No students found to migrate' });
+        }
+
+        const upgradeMapping = {
+            "1st Year 1st Sem": "1st Year 2nd Sem",
+            "1st Year 2nd Sem": "2nd Year 1st Sem",
+            "2nd Year 1st Sem": "2nd Year 2nd Sem",
+            "2nd Year 2nd Sem": "3rd Year 1st Sem",
+            "3rd Year 1st Sem": "3rd Year 2nd Sem",
+            "3rd Year 2nd Sem": "4th Year 1st Sem",
+            "4th Year 1st Sem": "4th Year 2nd Sem",
+            "4th Year 2nd Sem": "Ex-Student"
+        };
+
+        const downgradeMapping = {
+            "1st Year 2nd Sem": "1st Year 1st Sem",
+            "2nd Year 1st Sem": "1st Year 2nd Sem",
+            "2nd Year 2nd Sem": "2nd Year 1st Sem",
+            "3rd Year 1st Sem": "2nd Year 2nd Sem",
+            "3rd Year 2nd Sem": "3rd Year 1st Sem",
+            "4th Year 1st Sem": "3rd Year 2nd Sem",
+            "4th Year 2nd Sem": "4th Year 1st Sem",
+            "Ex-Student": "4th Year 2nd Sem"
+        };
+
+        const mapping = action === 'upgrade' ? upgradeMapping : downgradeMapping;
+        let migratedCount = 0;
+
+        for (const student of students) {
+            if (student.batch && mapping[student.batch]) {
+                const newBatch = mapping[student.batch];
+                await dbRepository.update('student_management', student.id, { batch: newBatch });
+                migratedCount++;
+            }
+        }
+
+        await logActivity(
+            req.user.id,
+            req.user.fullName || req.user.username,
+            'Semester Migration',
+            `Performed semester ${action} on ${migratedCount} students.`
+        );
+
+        res.json({ message: `Successfully ${action}d ${migratedCount} students' semesters` });
+
+    } catch (error) {
+        console.error("Error migrating semesters:", error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

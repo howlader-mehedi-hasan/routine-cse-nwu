@@ -16,6 +16,7 @@ import ActivityLogs from './components/ActivityLogs';
 import About from './components/About';
 import BugReportPage from './components/BugReportPage';
 import SettingsLayout from './components/layout/SettingsLayout';
+import SemesterMigration from './components/SemesterMigration';
 import { ThemeProvider } from './components/ui/ThemeProvider';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
@@ -106,6 +107,12 @@ function AppRoutes() {
       <Route path="/registration-settings" element={
         <ProtectedRoute requiredAnyPermission={['assign_permissions', 'manage_faculty', 'manage_courses']}>
           <DashboardLayout><SettingsLayout><RegistrationSettings /></SettingsLayout></DashboardLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/semester-migration" element={
+        <ProtectedRoute allowedRoles={['Super Admin', 'Admin']}>
+          <DashboardLayout><SettingsLayout><SemesterMigration /></SettingsLayout></DashboardLayout>
         </ProtectedRoute>
       } />
 

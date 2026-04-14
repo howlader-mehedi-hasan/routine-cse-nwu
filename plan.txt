@@ -50,3 +50,39 @@ fix this
 implement something for section view, and faculty view  in routine view page.
 Implement a toggle on off option.
 Regardless of the type of user, when in the section view, clicking on the class box will bring up the option to call the paying teacher by default and when in the faculty view, the option to call the corresponding CISR will come up by default. Leave it as it is now. This option will be implemented through a toggle switch, here there will be a switch toggle, when the toggle is off, it will remain as it is now, but when the toggle is turned on, the above setting will be implemented.
+
+
+
+
+
+Semister migration feature,
+there will be 2 Feature, 1. Semister Upgrade, 2. Semister Downgrade
+
+Semister Upgrade
+It is a feature that will allow the user to migrate the semister of all the student to the next semister.
+that means, if the current semister is 1st year 1st semister, then it will be migrated to 1st year 2nd semister.
+if the current semister is 1st year 2nd semister, then it will be migrated to 2nd year 1st semister.
+if the current semister is 2nd year 1st semister, then it will be migrated to 2nd year 2nd semister.
+if the current semister is 2nd year 2nd semister, then it will be migrated to 3rd year 1st semister.
+if the current semister is 3rd year 1st semister, then it will be migrated to 3rd year 2nd semister.
+if the current semister is 3rd year 2nd semister, then it will be migrated to 4th year 1st semister.
+if the current semister is 4th year 1st semister, then it will be migrated to 4th year 2nd semister.
+if the current semister is 4th year 2nd semister, then it will be migrated to Ex-Student. But there Section will remain same. Don't need to change the section of any student.
+
+Semister Downgrade
+it is a feature that will allow the user to downgrade the semister of all the student to the previous semister.
+that means, if the current semister is 1st year 2nd semister, then it will be migrated to 1st year 1st semister.
+if the current semister is 2nd year 1st semister, then it will be migrated to 1st year 2nd semister.
+if the current semister is 2nd year 2nd semister, then it will be migrated to 2nd year 1st semister.
+if the current semister is 3rd year 1st semister, then it will be migrated to 2nd year 2nd semister.
+if the current semister is 3rd year 2nd semister, then it will be migrated to 3rd year 1st semister.
+if the current semister is 4th year 1st semister, then it will be migrated to 3rd year 2nd semister.
+if the current semister is 4th year 2nd semister, then it will be migrated to 4th year 1st semister.
+if the current semister is Ex-Student, then it will be migrated to 4th year 2nd semister. But there Section will remain same. Don't need to change the section of any student.
+but if the surrent semister is 1st year 1st semister, then it will not be migrated to Incoming student. 
+
+create a page named "Semister Migration" and implement the feature there. and give a option named "Semister Migration" in the setting navigation bar. And this option will allow the admin to access this page. only admin can access this page.
+make this page dynamic, comprehensive, and user-friendly. with the list of all students and the status of there semister - before migration amd after migration. 
+there will be two button, one is "Semister Upgrade" and another is "Semister Downgrade". and when the user click on any of the button, it will perform the respective action.
+
+when the admin click any of the button, it will perform the respective action. and on the database the semister of all the student will be updated accordingly.

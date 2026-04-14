@@ -21,6 +21,7 @@ export const getStudents = () => api.get('/students');
 export const createStudent = (data) => api.post('/students', data);
 export const updateStudent = (id, data) => api.put(`/students/${id}`, data);
 export const deleteStudent = (id) => api.delete(`/students/${id}`);
+export const migrateSemesters = (action) => api.post('/students/migrate', { action });
 export const getCourses = () => api.get('/courses');
 export const getRooms = () => api.get('/rooms');
 export const getBatches = () => api.get('/batches');

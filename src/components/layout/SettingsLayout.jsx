@@ -27,6 +27,7 @@ const SettingsLayout = ({ children }) => {
     // Settings for public registration configuration
     if (user && (user.role === 'Super Admin' || user.role === 'Admin')) {
         settingItems.push({ path: '/registration-settings', label: 'Registration Settings', icon: <UserCog size={18} /> });
+        settingItems.push({ path: '/semester-migration', label: 'Semester Migration', icon: <ChevronRight size={18} /> });
     }
 
     // User management only for Super Admin or those with permission
