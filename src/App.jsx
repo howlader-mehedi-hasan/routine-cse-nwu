@@ -11,7 +11,6 @@ import UserDashboard from './components/UserDashboard';
 import RegistrationSettings from './components/RegistrationSettings';
 import ProfileSettings from './components/ProfileSettings';
 import PasswordSettings from './components/PasswordSettings';
-import NameChangeSettings from './components/NameChangeSettings';
 import ActivityLogs from './components/ActivityLogs';
 import About from './components/About';
 import BugReportPage from './components/BugReportPage';
@@ -125,12 +124,6 @@ function AppRoutes() {
       <Route path="/password" element={
         <ProtectedRoute>
           <DashboardLayout><SettingsLayout><PasswordSettings /></SettingsLayout></DashboardLayout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/name-change" element={
-        <ProtectedRoute>
-          <DashboardLayout><SettingsLayout><NameChangeSettings /></SettingsLayout></DashboardLayout>
         </ProtectedRoute>
       } />
 

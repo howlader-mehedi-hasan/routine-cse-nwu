@@ -448,54 +448,6 @@ export const changeUserPassword = async (req, res) => {
     }
 };
 
-export const requestNameChange = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { requestedName } = req.body;
-        if (req.user && String(req.user.role) !== 'Super Admin' && String(req.user.id) !== String(id)) {
-            return res.status(403).json({ message: 'You can only request your own name change' });
-        }
-        if (!requestedName || requestedName.trim() === '') {
-            return res.status(400).json({ message: 'Name cannot be empty' });
-        }
-        
-        const updated = await dbRepository.update('users', id, { pending_full_name: requestedName });
-        if (!updated) return res.status(404).json({ message: 'User not found' });
-
-        res.json({ message: 'Name change requested successfully', user: mapUser(updated) });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
-export const resolveNameChange = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { action } = req.body; // 'approve' or 'reject'
-        
-        const user = await dbRepository.getById('users', id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-        
-        const updates = { pending_full_name: null };
-        if (action === 'approve') {
-            updates.full_name = user.pending_full_name;
-        }
-        
-        await dbRepository.update('users', id, updates);
-
-        await logActivity(
-            req.user.id, 
-            req.user.fullName || req.user.username, 
-            'Name Change Resolution', 
-            `${action === 'approve' ? 'Approved' : 'Rejected'} name change request for user ${user.username} (Requested: ${user.pending_full_name}).`
-        );
-
-        res.json({ message: `Name change ${action}d successfully` });
-    } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
-    }
-};
-
 export const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;

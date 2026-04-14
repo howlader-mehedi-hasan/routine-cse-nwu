@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getSettings, getFaculty } from '../services/api';
 import axios from 'axios';
+import { SearchableSelect } from './ui/SearchableSelect';
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -47,17 +48,24 @@ export default function AuthPage() {
                 const baseURL = import.meta.env.VITE_API_URL || '/api';
                 const batchRes = await axios.get(`${baseURL}/batches`);
                 if (batchRes.data && Array.isArray(batchRes.data)) {
-                    setBatches(batchRes.data);
-                    if (batchRes.data.length > 0 && !formData.section) {
-                       setFormData(prev => ({ ...prev, section: batchRes.data[0].id.toString() }));
+                    const sortedBatches = [...batchRes.data].sort((a, b) => {
+                        const nameA = parseInt(a.name) || 0;
+                        const nameB = parseInt(b.name) || 0;
+                        if (nameA !== nameB) return nameA - nameB;
+                        return (a.section || '').localeCompare(b.section || '');
+                    });
+                    setBatches(sortedBatches);
+                    if (sortedBatches.length > 0 && !formData.section) {
+                       setFormData(prev => ({ ...prev, section: sortedBatches[0].id.toString() }));
                     }
                 }
 
                 const facultyRes = await axios.get(`${baseURL}/faculty`);
                 if (facultyRes.data && Array.isArray(facultyRes.data)) {
-                    setFaculties(facultyRes.data);
-                    if (facultyRes.data.length > 0 && !formData.facultyId) {
-                       setFormData(prev => ({ ...prev, facultyId: facultyRes.data[0].id.toString() }));
+                    const sortedFaculties = [...facultyRes.data].sort((a, b) => a.name.localeCompare(b.name));
+                    setFaculties(sortedFaculties);
+                    if (sortedFaculties.length > 0 && !formData.facultyId) {
+                       // We don't auto-select facultyId as it's optional
                     }
                 }
             } catch (err) {
@@ -172,17 +180,21 @@ export default function AuthPage() {
                                     </select>
                                 </div>
                                 {formData.role === 'Faculty' && (
-                                    <div>
-                                        <label className="text-sm font-medium">Select Faculty Profile (Optional)</label>
-                                        <select
-                                            className="w-full px-3 py-2 border rounded-md bg-background"
-                                            value={formData.facultyId}
-                                            onChange={(e) => setFormData({ ...formData, facultyId: e.target.value })}
-                                        >
-                                            <option value="">None / Not Specified</option>
-                                            {faculties.length === 0 && <option value="" disabled>No faculties available</option>}
-                                            {faculties.map(f => <option key={f.id} value={f.id.toString()}>{f.name} ({f.initials})</option>)}
-                                        </select>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="text-sm font-medium">Select Faculty Profile (Optional)</label>
+                                            <SearchableSelect
+                                                options={faculties.map(f => ({
+                                                    value: f.id.toString(),
+                                                    label: `${f.name} (${f.initials})`,
+                                                    searchTerms: `${f.name} ${f.initials}`
+                                                }))}
+                                                value={formData.facultyId}
+                                                onValueChange={(val) => setFormData({ ...formData, facultyId: val })}
+                                                placeholder="None / Not Specified"
+                                                searchPlaceholder="Search faculty by name or initials..."
+                                            />
+                                        </div>
                                     </div>
                                 )}
                                 {['Student', 'CR/ACR'].includes(formData.role) && (

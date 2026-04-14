@@ -39,7 +39,6 @@ const SettingsLayout = ({ children }) => {
     if (user) {
         settingItems.push({ path: '/profile', label: 'Edit Profile', icon: <UserCircle size={18} /> });
         settingItems.push({ path: '/password', label: 'Change Password', icon: <Key size={18} /> });
-        settingItems.push({ path: '/name-change', label: 'Request Name Change', icon: <Type size={18} /> });
     }
 
     // Activity Log

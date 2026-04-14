@@ -8,8 +8,6 @@ import {
     createUser, 
     updateUser, 
     changeUserPassword, 
-    requestNameChange, 
-    resolveNameChange, 
     deleteUser, 
     bulkDeleteUsers 
 } from '../controllers/authController.js';
@@ -25,8 +23,6 @@ router.get('/me', protect, getMe);
 router.get('/users', protect, requirePermission('assign_permissions'), getAllUsers);
 router.post('/users', protect, requirePermission('assign_permissions'), createUser);
 router.put('/users/:id', protect, updateUser);
-router.post('/users/:id/name-change', protect, requestNameChange);
-router.post('/users/:id/name-change-resolve', protect, requirePermission('assign_permissions'), resolveNameChange);
 router.put('/users/:id/password', protect, changeUserPassword);
 router.put('/users/:id/status', protect, requirePermission('assign_permissions'), updateUserStatus);
 router.delete('/users/:id', protect, requirePermission('assign_permissions'), deleteUser);

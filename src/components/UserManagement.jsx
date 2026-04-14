@@ -104,15 +104,6 @@ export default function UserManagement() {
         }
     };
 
-    const handleResolveNameChange = async (userId, action) => {
-        try {
-            await api.post(`/auth/users/${userId}/name-change-resolve`, { action });
-            toast.success(`Name change ${action}d successfully`);
-            loadUsersAndBatches();
-        } catch (error) {
-            toast.error(error.response?.data?.message || `Failed to ${action} name change`);
-        }
-    };
 
     const handleUpdateUser = async (e) => {
         e.preventDefault();
@@ -238,7 +229,6 @@ export default function UserManagement() {
     if (loading) return <div>Loading users...</div>;
 
     const pendingUsers = users.filter(u => u.status === 'pending');
-    const pendingNameChanges = users.filter(u => u.pendingFullName);
 
     return (
         <div className="space-y-8 p-6">
@@ -330,45 +320,6 @@ export default function UserManagement() {
                 )}
             </div>
 
-            {/* Pending Name Change Requests */}
-            {pendingNameChanges.length > 0 && (
-                <div className="bg-card rounded-lg border shadow-sm p-4 mt-8">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 border-b pb-2">
-                        <Edit className="h-5 w-5 text-pink-500" /> Pending Name Changes ({pendingNameChanges.length})
-                    </h3>
-                    <div className="divide-y border rounded-lg">
-                        {pendingNameChanges.map(user => (
-                            <div key={`name-change-${user.id}`} className="flex flex-col md:flex-row items-center justify-between p-4 bg-pink-50/50 dark:bg-pink-900/10">
-                                <div className="mb-4 md:mb-0 space-y-1">
-                                    <div className="font-bold text-lg">{user.username}</div>
-                                    <div className="text-sm">
-                                        <span className="text-muted-foreground mr-2">Current:</span>
-                                        <span className="line-through text-red-400">{user.fullName || '(Not Set)'}</span>
-                                    </div>
-                                    <div className="text-sm font-medium">
-                                        <span className="text-muted-foreground mr-2">Requested:</span>
-                                        <span className="text-emerald-500">{user.pendingFullName}</span>
-                                    </div>
-                                </div>
-                                <div className="flex gap-2 w-full md:w-auto mt-2 md:mt-0">
-                                    <button
-                                        onClick={() => handleResolveNameChange(user.id, 'approve')}
-                                        className="flex-1 md:flex-none flex items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-sm transition"
-                                    >
-                                        <Check className="h-4 w-4" /> Approve
-                                    </button>
-                                    <button
-                                        onClick={() => handleResolveNameChange(user.id, 'reject')}
-                                        className="flex-1 md:flex-none flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded text-sm transition"
-                                    >
-                                        <X className="h-4 w-4" /> Reject
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
 
             {/* Active Users */}
             {/* Active Users Table Section */}

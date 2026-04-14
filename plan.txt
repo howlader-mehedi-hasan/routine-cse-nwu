@@ -86,3 +86,11 @@ make this page dynamic, comprehensive, and user-friendly. with the list of all s
 there will be two button, one is "Semister Upgrade" and another is "Semister Downgrade". and when the user click on any of the button, it will perform the respective action.
 
 when the admin click any of the button, it will perform the respective action. and on the database the semister of all the student will be updated accordingly.
+
+
+Request Name Change option is not neeed any more, remove it from the website.
+
+in account registration page, when its time to select batch and section for student and cr/acr, the list of all batches will ordared numarically and the list of all section will ordared alphabetically.
+and when its time to select batch and section for faculty, the list of all batches will ordared numarically and the list of all section will ordared alphabetically. And inside the faculty drop-down, there need a search option to search faculty profile.
+
+in acccount registration section, when requested account type is faculty then the batch section selection option is not needed, instead of that there will be a option to select the faculty profile from the list of all faculty profiles.
