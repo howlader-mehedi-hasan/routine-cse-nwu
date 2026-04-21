@@ -520,7 +520,7 @@ const WeekRoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                                 "px-2 py-1 border border-border text-center min-w-[100px] whitespace-nowrap text-[10px]",
                                 index === array.length - 1 && "!border-r-4 !border-r-slate-300 dark:!border-r-slate-600"
                             )}>
-                                {slot}
+                                {getConfigForDay(day).display_mapping?.[slot] || slot}
                             </th>
                         ))}
                     </React.Fragment>

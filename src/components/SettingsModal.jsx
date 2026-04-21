@@ -9,7 +9,7 @@ import GenericCloudBackup from './GenericCloudBackup';
 
 const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
     const [settings, setSettings] = useState({
-        general: { theory_slots: [], lab_slots: [], slot_mapping: {} },
+        general: { theory_slots: [], lab_slots: [], slot_mapping: {}, display_mapping: {} },
         daily_overrides: {},
         app_settings: { auto_restore_on_startup: false, backup_schedule: { enabled: false, time: '02:00' } }
     });
@@ -61,16 +61,64 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
 
     const handleTheorySlotChange = (index, value) => {
         const config = getCurrentConfig();
+        const oldSlot = config.theory_slots[index];
         const newSlots = [...config.theory_slots];
         newSlots[index] = value;
-        updateCurrentConfig({ theory_slots: newSlots });
+        
+        const updates = { theory_slots: newSlots };
+        
+        if (oldSlot !== value) {
+            if (config.display_mapping && config.display_mapping[oldSlot]) {
+                const newDisplayMapping = { ...config.display_mapping };
+                newDisplayMapping[value] = newDisplayMapping[oldSlot];
+                delete newDisplayMapping[oldSlot];
+                updates.display_mapping = newDisplayMapping;
+            }
+            if (config.slot_mapping && config.slot_mapping[oldSlot]) {
+                const newSlotMapping = { ...config.slot_mapping };
+                newSlotMapping[value] = newSlotMapping[oldSlot];
+                delete newSlotMapping[oldSlot];
+                updates.slot_mapping = newSlotMapping;
+            }
+        }
+        
+        updateCurrentConfig(updates);
     };
 
     const handleLabSlotChange = (index, value) => {
         const config = getCurrentConfig();
+        const oldSlot = config.lab_slots[index];
         const newSlots = [...config.lab_slots];
         newSlots[index] = value;
-        updateCurrentConfig({ lab_slots: newSlots });
+        
+        const updates = { lab_slots: newSlots };
+
+        if (oldSlot !== value && config.slot_mapping) {
+            const newSlotMapping = { ...config.slot_mapping };
+            let mappingChanged = false;
+            Object.keys(newSlotMapping).forEach(theorySlot => {
+                if (newSlotMapping[theorySlot] === oldSlot) {
+                    newSlotMapping[theorySlot] = value;
+                    mappingChanged = true;
+                }
+            });
+            if (mappingChanged) {
+                updates.slot_mapping = newSlotMapping;
+            }
+        }
+        
+        updateCurrentConfig(updates);
+    };
+
+    const handleDisplayMappingChange = (slot, displayValue) => {
+        const config = getCurrentConfig();
+        const newMapping = { ...(config.display_mapping || {}) };
+        if (!displayValue || !displayValue.trim()) {
+            delete newMapping[slot];
+        } else {
+            newMapping[slot] = displayValue;
+        }
+        updateCurrentConfig({ display_mapping: newMapping });
     };
 
     const addTheorySlot = () => {
@@ -128,7 +176,8 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                     slot_mapping: {
                         "08:00-09:15": "08:00-10:30", "10:45-12:00": "10:45-01:15", "02:00-03:15": "02:00-04:30", "04:30-05:45": "04:30-07:00",
                         "09:15-10:30": "08:00-10:30", "12:00-01:15": "10:45-01:15", "03:15-04:30": "02:00-04:30", "05:45-07:00": "04:30-07:00"
-                    }
+                    },
+                    display_mapping: {}
                 },
                 daily_overrides: { Monday: null, Tuesday: null, Wednesday: null, Thursday: null, Friday: null, Saturday: null, Sunday: null }
             };
@@ -379,21 +428,31 @@ const SettingsModal = ({ isOpen, onClose, onSettingsUpdated }) => {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             {currentConfig.theory_slots.map((slot, index) => (
-                                <div key={`theory-${index}`} className="flex items-center gap-2 bg-muted/20 p-1 rounded-md border border-border/50">
+                                <div key={`theory-${index}`} className="flex flex-col gap-1 bg-muted/20 p-2 rounded-md border border-border/50">
+                                    <div className="flex items-center gap-2">
+                                        <Input
+                                            value={slot}
+                                            onChange={(e) => handleTheorySlotChange(index, e.target.value)}
+                                            className="font-mono text-sm border-0 focus-visible:ring-0 shadow-none bg-transparent h-8"
+                                            placeholder="08:00-09:15"
+                                            title="Backend Timeslot"
+                                        />
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => removeTheorySlot(index)}
+                                            className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                     <Input
-                                        value={slot}
-                                        onChange={(e) => handleTheorySlotChange(index, e.target.value)}
-                                        className="font-mono text-sm border-0 focus-visible:ring-0 shadow-none bg-transparent"
-                                        placeholder="08:00-09:15"
+                                        value={currentConfig.display_mapping?.[slot] || ''}
+                                        onChange={(e) => handleDisplayMappingChange(slot, e.target.value)}
+                                        className="font-mono text-xs border-0 focus-visible:ring-0 shadow-none bg-muted/50 h-7 text-muted-foreground"
+                                        placeholder="Display as (Optional)"
+                                        title="Frontend Display Timeslot (Optional)"
                                     />
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => removeTheorySlot(index)}
-                                        className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all shrink-0"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
                                 </div>
                             ))}
                         </div>

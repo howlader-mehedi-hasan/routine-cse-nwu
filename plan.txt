@@ -94,3 +94,11 @@ in account registration page, when its time to select batch and section for stud
 and when its time to select batch and section for faculty, the list of all batches will ordared numarically and the list of all section will ordared alphabetically. And inside the faculty drop-down, there need a search option to search faculty profile.
 
 in acccount registration section, when requested account type is faculty then the batch section selection option is not needed, instead of that there will be a option to select the faculty profile from the list of all faculty profiles.
+
+
+
+In the full full routine management system the class data are being saved according to the time slot 
+I need to make some changes to see the times slot appearing for the routine in week view and routine view also 
+In the front end the viewable time slot can be changeable it does not effect the main time slot of the database 
+That means two parameter will be saved, ones for maintimes lot for schedule taking to exactly what all are the classes are, and other one is the durable part of time slot and that can be different 
+That means if a time slot is 8:00 a.m. to 9:15 a.m. in the back end that will you are properly but if I want to show this period as 9:30 a.m. to 10:20 a.m. that can be possible

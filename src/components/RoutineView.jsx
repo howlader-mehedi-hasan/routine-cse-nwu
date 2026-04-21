@@ -921,7 +921,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
             excludeSignatures: true
         };
 
-        const tableColumn = [viewMode === 'master' ? "Batch" : "Day", ...currentTheorySlots];
+        const tableColumn = [viewMode === 'master' ? "Batch" : "Day", ...currentTheorySlots.map(slot => currentDayConfig?.display_mapping?.[slot] || slot)];
         const tableRows = [];
 
         if (viewMode === 'master') {
@@ -1033,7 +1033,7 @@ const RoutineView = ({ overtimeVisibility, setOvertimeVisibility }) => {
                 </th>
                 {currentTheorySlots.map(slot => (
                     <th key={slot} className="px-4 py-3 border-r border-border text-center min-w-[120px]">
-                        {slot}
+                        {currentDayConfig?.display_mapping?.[slot] || slot}
                     </th>
                 ))}
             </tr>
