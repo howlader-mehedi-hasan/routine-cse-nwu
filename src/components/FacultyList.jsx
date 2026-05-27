@@ -38,9 +38,9 @@ const FacultyList = () => {
         if (f.type === 'Adjunct' && !showAdjunct) return false;
 
         return (
-            f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            f.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             f.designation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            f.email.toLowerCase().includes(searchQuery.toLowerCase())
+            f.email?.toLowerCase().includes(searchQuery.toLowerCase())
         );
     });
 
