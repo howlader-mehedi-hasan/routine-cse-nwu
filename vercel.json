@@ -8,5 +8,11 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/health",
+      "schedule": "0 5 * * *"
+    }
   ]
 }
